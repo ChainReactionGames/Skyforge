@@ -59,6 +59,6 @@ def generate_launch_description():
         joint_state_broadcaster,
         joint_trajectory_controller,
         base_trajectory_controller,
-        # trajectory_publisher,
+        trajectory_publisher,
         base_trajectory_publisher
     ])
