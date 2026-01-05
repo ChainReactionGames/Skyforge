@@ -9,8 +9,8 @@ namespace lqr_arm_controller
     LQRArmController::on_init()
     {
         // Declare initialization parameters (K matrix for the LQR controller's gain)
-        auto_declare_parameters<std::vector<double>>(
-            "K", std::vector<double>{});
+        // Expecting a flat vector of 18 elements (3x6 matrix)
+        auto_declare<std::vector<double>>("K", std::vector<double>(18, 0.0));
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
@@ -24,6 +24,31 @@ namespace lqr_arm_controller
             {"joint1/effort", "joint2/effort", "joint3/effort"}
         }
     }
+
+    controller_interface::CallbackReturn
+    LQRArmController::on_configure(const rclcpp_lifecycle::State & )
+    {
+        // Retrieve and set the LQR gain matrix K from the given 18 element array parameter
+        auto K_vec = get_node()->get_parameter("K").as_double_array();
+        if (K_vec.size() != 18)
+        {
+            RCLCPP_ERROR(
+                get_logger(),
+                "LQR gain matrix K must have exactly 18 elements (3x6 matrix). Got %zu", K_vec.size());
+            return controller_interface::CallbackReturn::ERROR;
+        }
+        // Map flat vector to Eigen matrix
+        for (size_t i = 0; i < 3; ++i)
+        {
+            for (size_t j = 0; j < 6; ++j)
+            {
+                K_(i, j) = K_vec[i * 6 + j];
+            }
+        }
+        RCLCPP_INFO(get_logger(), "LQR gain matrix K configured successfully.");
+        return controller_interface::CallbackReturn::SUCCESS;
+    }
+
 
     // state_interfaces_ vector: 0 - joint1/position, 1 - joint1/velocity,
     //                           2 - joint2/position, 3 - joint2/velocity,

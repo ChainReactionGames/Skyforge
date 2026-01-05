@@ -87,6 +87,6 @@ def generate_launch_description():
         spawn_entity,
         ros2_control_node,
         joint_state_broadcaster_spawner,
-        joint_trajectory_controller_spawner,
+        # joint_trajectory_controller_spawner,
         base_trajectory_controller_spawner
     ])
