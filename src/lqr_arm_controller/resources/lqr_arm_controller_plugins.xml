@@ -1,0 +1,7 @@
+<library path="lib/liblqr_arm_controller">
+  <class name="lqr_arm_controller/LQRArmController"
+         type="lqr_arm_controller::LQRArmController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>LQR controller for a 3-DOF arm</description>
+  </class>
+</library>
