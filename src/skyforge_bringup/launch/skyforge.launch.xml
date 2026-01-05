@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Rviz Description -->
+  <include file="$(find-pkg-share skyforge_description)/launch/robotmodel.launch.py" />
+
+  <!-- Gazebo simulation -->
+  <include file="$(find-pkg-share skyforge_gazebo)/launch/gazebo.launch.py" />
+
+  <!-- Skyforge Controller simulation Uncomment to add-->
+  <include file="$(find-pkg-share skyforge_controllers)/launch/controllers.launch.py" /> 
+
+</launch>

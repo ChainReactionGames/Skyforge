@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>skyforge_gazebo</name>
+  <version>0.0.1</version>
+  <description>Gazebo simulation package for Skyforge robot</description>
+
+  <maintainer email="dwidjaja@example.com">Denzel Widjaja</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- Build system -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Dependencies -->
+  <depend>rclpy</depend>
+  <depend>gazebo_ros</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>skyforge_description</depend>
+
+  <!-- Export to use Python-based launch system -->
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
