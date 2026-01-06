@@ -5,3 +5,4 @@
     <description>LQR controller for a 3-DOF arm</description>
   </class>
 </library>
+<!-- THIS FILE IS PROBABLY OBSOLETE. USE LQR_ARM_CONTROLLER.XML FROM THE ROOT DIRECTORY OF THIS PACKAGE -->

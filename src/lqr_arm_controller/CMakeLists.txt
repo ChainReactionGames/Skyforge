@@ -8,6 +8,11 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+add_library(lqr_arm_controller SHARED
+  src/lqr_arm_controller.cpp)
+
+target_include_directories(lqr_arm_controller PRIVATE include)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(controller_interface REQUIRED)
@@ -16,6 +21,21 @@ find_package(pluginlib REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(Eigen3 REQUIRED)
+
+ament_target_dependencies(lqr_arm_controller
+  controller_interface
+  rclcpp
+  pluginlib
+  hardware_interface
+  realtime_tools
+  Eigen3)
+
+pluginlib_export_plugin_description_file(controller_interface lqr_arm_controller.xml)
+
+install(TARGETS lqr_arm_controller
+  DESTINATION lib)
+install(DIRECTORY include/
+  DESTINATION include) 
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

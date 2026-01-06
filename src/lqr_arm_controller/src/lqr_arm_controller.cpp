@@ -22,7 +22,7 @@ namespace lqr_arm_controller
         return controller_interface::InterfaceConfiguration {
             controller_interface::interface_configuration_type::INDIVIDUAL,
             {"joint1/effort", "joint2/effort", "joint3/effort"}
-        }
+        };
     }
 
     controller_interface::CallbackReturn
@@ -33,7 +33,7 @@ namespace lqr_arm_controller
         if (K_vec.size() != 18)
         {
             RCLCPP_ERROR(
-                get_logger(),
+                get_node()->get_logger(),
                 "LQR gain matrix K must have exactly 18 elements (3x6 matrix). Got %zu", K_vec.size());
             return controller_interface::CallbackReturn::ERROR;
         }
@@ -45,7 +45,7 @@ namespace lqr_arm_controller
                 K_(i, j) = K_vec[i * 6 + j];
             }
         }
-        RCLCPP_INFO(get_logger(), "LQR gain matrix K configured successfully.");
+        RCLCPP_INFO(get_node()->get_logger(), "LQR gain matrix K configured successfully.");
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
@@ -74,14 +74,14 @@ namespace lqr_arm_controller
         if (command_interfaces_.size() != 3)
         {
             RCLCPP_ERROR(
-                get_logger(),
+                get_node()->get_logger(),
                 "LQRArmController requires 3 command interfaces (effort for 3 joints).");
             return controller_interface::CallbackReturn::ERROR;
         }
         if (state_interfaces_.size() != 6)
         {
             RCLCPP_ERROR(
-                get_logger(),
+                get_node()->get_logger(),
                 "LQRArmController requires 6 state interfaces (position and velocity for 3 joints).");
             return controller_interface::CallbackReturn::ERROR;
         }

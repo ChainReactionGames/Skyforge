@@ -80,7 +80,15 @@ def generate_launch_description():
             controllers_file,
             ],
     )
-
+    lqr_arm_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'lqr_arm_controller',
+            '--param-file',
+            controllers_file,
+            ],
+    )
     return LaunchDescription([
         gz_sim,
         robot_state_publisher,
@@ -88,5 +96,6 @@ def generate_launch_description():
         ros2_control_node,
         joint_state_broadcaster_spawner,
         # joint_trajectory_controller_spawner,
-        base_trajectory_controller_spawner
+        base_trajectory_controller_spawner,
+        lqr_arm_controller_spawner
     ])
