@@ -90,6 +90,72 @@ namespace lqr_arm_controller
         return controller_interface::CallbackReturn::SUCCESS;
     }
 
+    controller_interface::return_type
+    LQRArmController::update(
+        const rclcpp::Time &,
+        const rclcpp::Duration & )
+    {
+        
+        auto read_state = [&](size_t idx) -> double {
+            auto val = state_interfaces_[idx].get_optional();
+            if (!val) {
+                throw std::runtime_error("State interface unavailable");
+            }
+            return *val;
+        };
 
+        // Construct state vector x = [q1, q2, q3, dq1, dq2, dq3]^T
+        Eigen::Matrix<double, 6, 1> x;
+        try {
+            x(0) = read_state(0); // joint1 pos
+            x(1) = read_state(2); // joint2 pos
+            x(2) = read_state(4); // joint3 pos
+            x(3) = read_state(1); // joint1 vel
+            x(4) = read_state(3); // joint2 vel
+            x(5) = read_state(5); // joint3 vel
+        } catch (const std::exception & e) {
+            RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
+            return controller_interface::return_type::ERROR;
+        }
 
+        //DEPRECATED WAY OF DOING THE SAME THING:
+        // Eigen::Matrix<double, 6, 1> x;
+        // x(0) = state_interfaces_[0].get_value(); // joint1 position
+        // x(1) = state_interfaces_[2].get_value(); // joint2 position
+        // x(2) = state_interfaces_[4].get_value(); // joint3 position
+        // x(3) = state_interfaces_[1].get_value(); // joint1 velocity
+        // x(4) = state_interfaces_[3].get_value(); // joint2 velocity
+        // x(5) = state_interfaces_[5].get_value(); // joint3 velocity
+
+        // Compute control input tau = -K * x
+        Eigen::Matrix<double, 3, 1> tau = -K_ * x;
+
+        // Apply control inputs to command interfaces
+        auto set_command = [&](size_t idx, double value) -> bool {
+            auto opt = command_interfaces_[idx].get_optional();
+            if (!opt) {
+                throw std::runtime_error("Command interface unavailable");
+            }
+            *opt = value;
+            return true;
+        };
+        try {
+            set_command(0, tau(0)); // joint1 effort
+            set_command(1, tau(1)); // joint2 effort
+            set_command(2, tau(2)); // joint3 effort
+        } catch (const std::exception & e) {
+            RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
+            return controller_interface::return_type::ERROR;
+        }
+
+        //DEPRECATED WAY OF DOING THE SAME THING:
+        // command_interfaces_[0].set_value(tau(0)); // joint1 effort
+        // command_interfaces_[1].set_value(tau(1)); // joint2 effort
+        // command_interfaces_[2].set_value(tau(2)); // joint3 effort
+
+        return controller_interface::return_type::OK;
+    }
 }
+
+#include "pluginlib/class_list_macros.hpp"
+PLUGINLIB_EXPORT_CLASS(lqr_arm_controller::LQRArmController, controller_interface::ControllerInterface)
