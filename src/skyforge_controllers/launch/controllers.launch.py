@@ -39,7 +39,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Pick EITHER this one OR the stepping one
+    # Pick EITHER this one OR the stepping one OR the oscillating one
     base_trajectory_publisher = Node(
         package='skyforge_controllers',
         executable='base_trajectory_publisher',
@@ -49,6 +49,12 @@ def generate_launch_description():
     base_stepping_trajectory_publisher = Node(
         package='skyforge_controllers',
         executable='base_stepping_trajectory_publisher',
+        output='screen'
+    )
+
+    base_oscillating_trajectory_publisher = Node(
+        package='skyforge_controllers',
+        executable='base_oscillating_trajectory_publisher',
         output='screen'
     )
 

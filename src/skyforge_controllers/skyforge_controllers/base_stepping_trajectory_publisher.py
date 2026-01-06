@@ -55,7 +55,7 @@ class TrajectoryPublisher(Node):
         points.append(make_point(3.0, 0.0, 9))
 
         # Point 8: Move to 4.0 over 2s
-        points.append(make_point(4.0, 0.3, 11))
+        points.append(make_point(4.0, 0.0, 11))
 
         # Add points to trajectory
         traj.points.extend(points)

@@ -11,10 +11,10 @@ class TrajectoryPublisher(Node):
         self.publisher_ = self.create_publisher(
             JointTrajectory,
             '/base_trajectory_controller/joint_trajectory',
-            10
+            1
         )
 
-        timer_period = 10.0  # seconds
+        timer_period = 3#10.0  # seconds
         self.timer = self.create_timer(timer_period, self.send_trajectory)
         self.get_logger().info("Trajectory Publisher Node Started")
 
@@ -31,16 +31,16 @@ class TrajectoryPublisher(Node):
 
         # Point 2: Moving at constant speed
         point2 = JointTrajectoryPoint()
-        point2.positions = [2.0]
-        point2.velocities = [0.5]
-        point2.time_from_start.sec = 4
+        point2.positions = [1]#[2.0]
+        point2.velocities = [0]
+        point2.time_from_start.sec = 1#4
         traj.points.append(point2)
 
         # Point 3: Moving at constant speed
         point3 = JointTrajectoryPoint()
-        point3.positions = [4.0]
-        point3.velocities = [0]
-        point3.time_from_start.sec = 8
+        point3.positions = [-1]#[4.0]
+        point3.velocities = [0]#[0]
+        point3.time_from_start.sec = 2#8
         traj.points.append(point3)
 
         self.publisher_.publish(traj)
