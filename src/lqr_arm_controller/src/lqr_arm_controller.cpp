@@ -113,6 +113,8 @@ namespace lqr_arm_controller
             x(3) = read_state(1); // joint1 vel
             x(4) = read_state(3); // joint2 vel
             x(5) = read_state(5); // joint3 vel
+            RCLCPP_INFO(get_node()->get_logger(), "States: %f %f, %f %f, %f %f", x(0), x(1), x(2), x(3), x(4), x(5));
+
         } catch (const std::exception & e) {
             RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
             return controller_interface::return_type::ERROR;
@@ -129,7 +131,8 @@ namespace lqr_arm_controller
 
         // Compute control input tau = -K * x
         Eigen::Matrix<double, 3, 1> tau = -K_ * x;
-
+        tau(0) = 1; // For testing purposes, set joint1 torque to 1
+        RCLCPP_INFO(get_node()->get_logger(), "Computed torques: %f %f %f", tau(0), tau(1), tau(2));   
         // Apply control inputs to command interfaces
         auto set_command = [&](size_t idx, double value) -> bool {
             auto opt = command_interfaces_[idx].get_optional();

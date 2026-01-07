@@ -31,9 +31,9 @@ lqr_arm_controller:
     state_interfaces:
       - position
       - velocity
-    K: [10.0, 0.0, 0.0, 5.0, 0.0, 0.0,
-        0.0, 10.0, 0.0, 0.0, 5.0, 0.0,
-        0.0, 0.0, 10.0, 0.0, 0.0, 5.0]  # Example gain matrix (3x6 flattened to an array)
+    K: [5.0, 0.0, 0.0, 10.0, 0.0, 0.0,   # joint1: 5*angle + 10*velocity
+        0.0, 5.0, 0.0, 0.0, 10.0, 0.0,   # joint2: 5*angle + 10*velocity
+        0.0, 0.0, 5.0, 0.0, 0.0, 10.0]   # joint3: 5*angle + 10*velocity
 
 base_trajectory_controller:
   ros__parameters:

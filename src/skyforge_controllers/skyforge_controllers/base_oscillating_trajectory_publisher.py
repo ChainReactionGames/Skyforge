@@ -17,32 +17,40 @@ class OscillatingBasePublisher(Node):
         )
 
          # Oscillation parameters
-        self.amplitude = 1.0       # maximum displacement
+        self.amplitude = 0.15       # maximum displacement
         self.frequency = 0.2       # Hz (cycles per second)
         self.start_time = self.get_clock().now().nanoseconds / 1e9
 
-        # Publish at 50 Hz for smooth motion
-        freq = 50.0
-        timer_period = 1.0 / freq
+        timer_period = 1.0 / self.frequency
         self.timer = self.create_timer(timer_period, self.send_trajectory)
         self.get_logger().info("Smooth Oscillating Base Node Started")
 
 
     def send_trajectory(self):
-        current_time = self.get_clock().now().nanoseconds / 1e9
-        t = current_time - self.start_time
+        # current_time = self.get_clock().now().nanoseconds / 1e9
+        # t = current_time - self.start_time
 
-        position = self.amplitude * math.sin(2 * math.pi * self.frequency * t)
-        velocity = (2 * math.pi * self.frequency) * self.amplitude * math.cos(2 * math.pi * self.frequency * t) 
+        # position = self.amplitude * math.sin(2 * math.pi * self.frequency * t)
+        # velocity = (2 * math.pi * self.frequency) * self.amplitude * math.cos(2 * math.pi * self.frequency * t) 
 
         traj = JointTrajectory()
         traj.joint_names = ['world_to_base']
 
-        point = JointTrajectoryPoint()
-        point.positions = [position]
-        point.velocities = [0.0]  # Velocity of last point in array has to be zero :() 
-        point.time_from_start.sec = 0
-        traj.points.append(point)
+        oscillationResolution = 10  # Number of points in one oscillation cycle
+        for i in range(oscillationResolution):
+            j = i + 1
+            dt = j * (1.0 / (self.frequency * oscillationResolution))
+            pos = self.amplitude * math.cos(2 * math.pi * self.frequency * (dt))
+            vel = (2 * math.pi * self.frequency) * self.amplitude * -1 * math.sin(2 * math.pi * self.frequency * (dt))
+
+            point = JointTrajectoryPoint()
+            point.positions = [pos]
+            point.velocities = [vel]
+            point.time_from_start.sec = int(dt)
+            point.time_from_start.nanosec = int((dt - int(dt)) * 1e9)
+            traj.points.append(point)
+
+
         self.publisher_.publish(traj)
 
 

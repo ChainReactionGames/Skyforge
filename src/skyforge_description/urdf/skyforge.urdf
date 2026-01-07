@@ -62,9 +62,9 @@
     </collision>
 
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0.3 0 0" rpy="0 0 0"/>
       <mass value="1.0"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+      <inertia ixx="0.00125" ixy="0.0" ixz="0.0" iyy="0.0306" iyz="0.0" izz="0.0306"/>
     </inertial>
   </link>
 
@@ -93,9 +93,9 @@
     </collision>
 
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0.3 0 0" rpy="0 0 0"/>
       <mass value="1.0"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+      <inertia ixx="0.00125" ixy="0.0" ixz="0.0" iyy="0.0306" iyz="0.0" izz="0.0306"/>
     </inertial>
   </link>
 
@@ -124,9 +124,9 @@
     </collision>
 
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0.3 0 0" rpy="0 0 0"/>
       <mass value="1.0"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+      <inertia ixx="0.00125" ixy="0.0" ixz="0.0" iyy="0.0306" iyz="0.0" izz="0.0306"/>
     </inertial>
 
   </link>
@@ -137,7 +137,7 @@
     <child link="base_link"/>
     <origin xyz="0 0 0"/>
     <axis xyz="0 1 0"/> <!-- movement along Y -->
-    <limit lower="-5.0" upper="5.0" effort="50" velocity="1.0"/>
+    <limit lower="-5.0" upper="5.0" effort="50" velocity="5.0"/>
   </joint>
 
   <!-- Revolute joints -->
@@ -146,7 +146,7 @@
     <child link="link1"/>
     <origin xyz="0.2 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" velocity="2" lower="-1.57" upper="1.57"/>
+    <limit effort="100000" velocity="100000" lower="-3.14" upper="3.14"/>
   </joint>
 
   <joint name="joint2" type="revolute">
@@ -154,7 +154,7 @@
     <child link="link2"/>
     <origin xyz="0.6 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" velocity="2" lower="-1.57" upper="1.57"/>
+    <limit effort="100000" velocity="100000" lower="-1.57" upper="1.57"/>
   </joint>
 
   <joint name="joint3" type="revolute">
@@ -162,7 +162,7 @@
     <child link="link3"/>
     <origin xyz="0.6 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="5" velocity="2" lower="-1.57" upper="1.57"/>
+    <limit effort="100000" velocity="100000" lower="-1.57" upper="1.57"/>
   </joint>
 
 
@@ -174,35 +174,42 @@
       <command_interface name="position"/>
       <state_interface name="position"/>
       <state_interface name="velocity"/>
+      <state_interface name="effort"/>
    </joint>
 
    <joint name="joint1">
       <command_interface name="effort">
-        <param name="min">-1000</param>
-        <param name="max">1000</param>
+        <param name="min">-100000</param>
+        <param name="max">100000</param>
       </command_interface>
       <state_interface name="position">
-        <param name="initial_value">1.5</param>
+        <param name="initial_value">0</param>
       </state_interface>
       <state_interface name="velocity"/>
-      <!-- <state_interface name="acceleration"/> -->
+      <state_interface name="effort"/>
 
    </joint>
 
    <joint name="joint2">
-     <command_interface name="effort"/>
+      <command_interface name="effort">
+        <param name="min">-100000</param>
+        <param name="max">100000</param>
+      </command_interface>
      <state_interface name="position">
-        <param name="initial_value">-1.5</param>
+        <param name="initial_value">0</param>
      </state_interface>
      <state_interface name="velocity"/>
-     <!-- <state_interface name="acceleration"/> -->
+     <state_interface name="effort"/>
    </joint>
 
     <joint name="joint3">
-     <command_interface name="effort"/>
+      <command_interface name="effort">
+        <param name="min">-100000</param>
+        <param name="max">100000</param>
+      </command_interface>
      <state_interface name="position"/>
      <state_interface name="velocity"/>
-     <!-- <state_interface name="acceleration"/> -->
+     <state_interface name="effort"/>
     </joint>
   </ros2_control>
 <gazebo>
@@ -210,93 +217,6 @@
     <parameters>/home/dwidjaja/Desktop/Skyforge/src/skyforge_controllers/config/three_link_arm_controllers.yaml</parameters>
   </plugin>
 </gazebo>
-<!-- ROS2 Control interface -->
-  <!-- <ros2_control name="ThreeLinkArmSystem" type="system">
-    <hardware>
-      <plugin>mock_components/GenericSystem</plugin>
-      <param name="loop_hz">100</param>
-      <param name="joint_read_rate">50</param>
-      <param name="fake_sensor_commands">true</param>
-    </hardware>
-
-    <joint name="joint1">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-
-    <joint name="joint2">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-
-    <joint name="joint3">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-      <command_interface name="position"/>
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-  </ros2_control> -->
-<!-- <ros2_control name="SkyforgeSystem" type="system">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-  </ros2_control> -->
-<!-- <ros2_control name="SkyforgeSystem" type="system">
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-  </ros2_control> -->
-<!-- <ros2_control name="SkyforgeSystem" type="system">
-  </ros2_control> -->
-<!-- <ros2_control name="SkyforgeSystem" type="system">
-    </joint>
-  </ros2_control> -->
-<!-- <ros2_control name="SkyforgeSystem" type="system">
-  <hardware>
-    <plugin name="skyforge_system" type="gz_ros2_control/Ga
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-  </ros2_control> -->
-<!-- <ros2_control name="SkyforgeSystem" type="system">zeboSimSystem"/>
-  </hardware>
-
-  <joint name="joint1">
-    <command_interface name="effort"/>
-    <state_interface name="position"/>
-    <state_interface name="velocity"/>
-  </joint>
-
-  <joint name="joint2">
-    <command_interface name="effort"/>
-    <state_interface name="position"/>
-    <state_interface name="velocity"/>
-  </joint>
-  <joint name="joint3">
-    <command_interface name="effort"/>
-    <state_interface name="position"/>
-    <state_interface name="velocity"/>
-  </joint>
-</ros2_control> -->
-  <!-- Gazebo linkage -->
-  <!-- <gazebo> -->
-    <!-- <plugin name="gz_ros2_control::GazeboSimROS2ControlPlugin" filename="libgz_ros2_control-system.so"> -->
-      <!-- This points to the controller YAML, which is in a different package than the description here -->
-      <!-- <parameters>/home/dwidjaja/Desktop/Skyforge/src/skyforge_controllers/config/three_link_arm_controllers.yaml</parameters> -->
-    <!-- </plugin> -->
-  <!-- </gazebo> -->
-
 
 </robot>
 

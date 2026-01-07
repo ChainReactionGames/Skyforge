@@ -25,6 +25,13 @@ def generate_launch_description():
         executable='spawner',
         arguments=['joint_trajectory_controller'],
     )
+
+    lqr_arm_controller = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'lqr_arm_controller'],
+    )
     
     base_trajectory_controller = Node(
         package='controller_manager',
@@ -63,8 +70,9 @@ def generate_launch_description():
     return LaunchDescription([
         controller_manager,
         joint_state_broadcaster,
-        joint_trajectory_controller,
-        base_trajectory_controller,
-        # trajectory_publisher,
-        base_trajectory_publisher
+        #NO MORE joint_trajectory_controller,
+        #lqr_arm_controller,
+        #base_trajectory_controller,
+        #NO MORE trajectory_publisher,
+        #base_oscillating_trajectory_publisher
     ])
