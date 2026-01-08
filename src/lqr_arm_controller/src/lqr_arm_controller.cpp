@@ -131,31 +131,38 @@ namespace lqr_arm_controller
 
         // Compute control input tau = -K * x
         Eigen::Matrix<double, 3, 1> tau = -K_ * x;
-        tau(0) = 1; // For testing purposes, set joint1 torque to 1
+        //tau(0) = 1; // For testing purposes, set joint1 torque to 1
         RCLCPP_INFO(get_node()->get_logger(), "Computed torques: %f %f %f", tau(0), tau(1), tau(2));   
         // Apply control inputs to command interfaces
-        auto set_command = [&](size_t idx, double value) -> bool {
-            auto opt = command_interfaces_[idx].get_optional();
-            if (!opt) {
-                throw std::runtime_error("Command interface unavailable");
-            }
-            *opt = value;
-            return true;
-        };
-        try {
-            set_command(0, tau(0)); // joint1 effort
-            set_command(1, tau(1)); // joint2 effort
-            set_command(2, tau(2)); // joint3 effort
-        } catch (const std::exception & e) {
-            RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
-            return controller_interface::return_type::ERROR;
-        }
+
+        // NEW SUPPOSEDLY SAFE WAY THAT DOESN'T SEEM TO WORK
+        // auto set_command = [&](size_t idx, double value) -> bool {
+        //     auto opt = command_interfaces_[idx].get_optional();
+        //     if (!opt) {
+        //         throw std::runtime_error("Command interface unavailable");
+        //     }
+        //     *opt = value;
+        //     return true;
+        // };
+        // try {
+        //     set_command(0, tau(0)); // joint1 effort
+        //     set_command(1, tau(1)); // joint2 effort
+        //     set_command(2, tau(2)); // joint3 effort
+        // } catch (const std::exception & e) {
+        //     RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
+        //     return controller_interface::return_type::ERROR;
+        // }
 
         //DEPRECATED WAY OF DOING THE SAME THING:
-        // command_interfaces_[0].set_value(tau(0)); // joint1 effort
-        // command_interfaces_[1].set_value(tau(1)); // joint2 effort
-        // command_interfaces_[2].set_value(tau(2)); // joint3 effort
-
+        bool ok0 = command_interfaces_[0].set_value(tau(0)); // joint1 effort
+        bool ok1 = command_interfaces_[1].set_value(tau(1)); // joint2 effort
+        bool ok2 = command_interfaces_[2].set_value(tau(2)); // joint3 effort
+        if (!(ok0 && ok1 && ok2)) {
+            RCLCPP_ERROR(
+                get_node()->get_logger(),
+                "Failed to set one or more joint effort commands"
+            );
+        }
         return controller_interface::return_type::OK;
     }
 }
