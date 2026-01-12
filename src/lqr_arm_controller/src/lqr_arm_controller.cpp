@@ -27,9 +27,9 @@ namespace lqr_arm_controller
         };
     }
 
-    // state_interfaces_ vector: 0 - joint1/position, 1 - joint1/velocity,
-    //                           2 - joint2/position, 3 - joint2/velocity,
-    //                           4 - joint3/position, 5 - joint3/velocity
+    // state_interfaces_ vector: 0 - joint1/position, 1 - joint1/velocity, 2 - joint1/effort,
+    //                           3 - joint2/position, 4 - joint2/velocity, 5 - joint2/effort,
+    //                           6 - joint3/position, 7 - joint3/velocity, 8 - joint3/effort
     controller_interface::InterfaceConfiguration
     LQRArmController::state_interface_configuration() const
     {
@@ -37,9 +37,9 @@ namespace lqr_arm_controller
         return controller_interface::InterfaceConfiguration {
             controller_interface::interface_configuration_type::INDIVIDUAL,
             {
-                "joint1/position", "joint1/velocity",
-                "joint2/position", "joint2/velocity",
-                "joint3/position", "joint3/velocity"
+                "joint1/position", "joint1/velocity", "joint1/effort",
+                "joint2/position", "joint2/velocity", "joint2/effort",
+                "joint3/position", "joint3/velocity", "joint3/effort"
             }
         };
     }
@@ -55,11 +55,11 @@ namespace lqr_arm_controller
                 "LQRArmController requires 3 command interfaces (effort for 3 joints).");
             return controller_interface::CallbackReturn::ERROR;
         }
-        if (state_interfaces_.size() != 6)
+        if (state_interfaces_.size() != 9)
         {
             RCLCPP_ERROR(
                 get_node()->get_logger(),
-                "LQRArmController requires 6 state interfaces (position and velocity for 3 joints).");
+                "LQRArmController requires 9 state interfaces (position, velocity, and effort for 3 joints).");
             return controller_interface::CallbackReturn::ERROR;
         }
         return controller_interface::CallbackReturn::SUCCESS;
@@ -104,56 +104,35 @@ namespace lqr_arm_controller
             return *val;
         };
 
-        // Construct state vector x = [q1, q2, q3, dq1, dq2, dq3]^T
+        // Construct state vector x = [q1, q2, q3, dq1, dq2, dq3, e1, e2, e3]^T
         Eigen::Matrix<double, 6, 1> x;
+        Eigen::Matrix<double, 3, 1> e;
+
         try {
             x(0) = read_state(0); // joint1 pos
-            x(1) = read_state(2); // joint2 pos
-            x(2) = read_state(4); // joint3 pos
+            x(1) = read_state(3); // joint2 pos
+            x(2) = read_state(6); // joint3 pos
             x(3) = read_state(1); // joint1 vel
-            x(4) = read_state(3); // joint2 vel
-            x(5) = read_state(5); // joint3 vel
-            RCLCPP_INFO(get_node()->get_logger(), "States: %f %f, %f %f, %f %f", x(0), x(1), x(2), x(3), x(4), x(5));
+            x(4) = read_state(4); // joint2 vel
+            x(5) = read_state(7); // joint3 vel
+
+            e(0) = read_state(2); // joint1 effort
+            e(1) = read_state(5); // joint2 effort
+            e(2) = read_state(8); // joint3 effort
+            RCLCPP_INFO(get_node()->get_logger(), 
+                "States: J1: %f %f, J2: %f %f, J3: %f %f, Effort: %f %f %f", x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2)
+            );
 
         } catch (const std::exception & e) {
             RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
             return controller_interface::return_type::ERROR;
         }
 
-        //DEPRECATED WAY OF DOING THE SAME THING:
-        // Eigen::Matrix<double, 6, 1> x;
-        // x(0) = state_interfaces_[0].get_value(); // joint1 position
-        // x(1) = state_interfaces_[2].get_value(); // joint2 position
-        // x(2) = state_interfaces_[4].get_value(); // joint3 position
-        // x(3) = state_interfaces_[1].get_value(); // joint1 velocity
-        // x(4) = state_interfaces_[3].get_value(); // joint2 velocity
-        // x(5) = state_interfaces_[5].get_value(); // joint3 velocity
-
         // Compute control input tau = -K * x
         Eigen::Matrix<double, 3, 1> tau = -K_ * x;
         //tau(0) = 1; // For testing purposes, set joint1 torque to 1
         RCLCPP_INFO(get_node()->get_logger(), "Computed torques: %f %f %f", tau(0), tau(1), tau(2));   
         // Apply control inputs to command interfaces
-
-        // NEW SUPPOSEDLY SAFE WAY THAT DOESN'T SEEM TO WORK
-        // auto set_command = [&](size_t idx, double value) -> bool {
-        //     auto opt = command_interfaces_[idx].get_optional();
-        //     if (!opt) {
-        //         throw std::runtime_error("Command interface unavailable");
-        //     }
-        //     *opt = value;
-        //     return true;
-        // };
-        // try {
-        //     set_command(0, tau(0)); // joint1 effort
-        //     set_command(1, tau(1)); // joint2 effort
-        //     set_command(2, tau(2)); // joint3 effort
-        // } catch (const std::exception & e) {
-        //     RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
-        //     return controller_interface::return_type::ERROR;
-        // }
-
-        //DEPRECATED WAY OF DOING THE SAME THING:
         bool ok0 = command_interfaces_[0].set_value(tau(0)); // joint1 effort
         bool ok1 = command_interfaces_[1].set_value(tau(1)); // joint2 effort
         bool ok2 = command_interfaces_[2].set_value(tau(2)); // joint3 effort
