@@ -7,7 +7,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     skyforge_description_path = FindPackageShare('skyforge_description')
-    default_model_path = PathJoinSubstitution([skyforge_description_path, 'urdf', 'skyforge.urdf'])
+    default_model_path = PathJoinSubstitution([skyforge_description_path, 'urdf', 'skyforge.urdf.xacro'])
     default_rviz_config_path = PathJoinSubstitution([skyforge_description_path, 'rviz', 'urdf.rviz'])
 
     # These parameters are maintained for backwards compatibility

@@ -1,5 +1,30 @@
 <?xml version="1.0"?>
-<robot name="three_link_arm_flat">
+<robot name="three_link_arm_flat" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- MARK: Inertias and masses -->
+  <xacro:property name="inertiaLink1" value="0.186466" />
+  <xacro:property name="inertiaLink2" value="0.186466" />
+  <xacro:property name="inertiaLink3" value="15.4373" />
+
+  <xacro:property name="massLink1" value="3.07" />
+  <xacro:property name="massLink2" value="3.07" />
+  <xacro:property name="massLink3" value="41.218" />
+
+  <!-- MARK:  Geometry -->
+  <xacro:property name="COMLink1" value="0.207655" />
+  <xacro:property name="COMLink2" value="0.207655" />
+  <xacro:property name="COMLink3" value="0.966762" />
+
+  <xacro:property name="lengthLink1" value="0.75" />
+  <xacro:property name="lengthLink2" value="0.75" />
+  <xacro:property name="lengthLink3" value="2" />
+
+  <xacro:property name="radiusLink1" value="0.015" />
+  <xacro:property name="radiusLink2" value="0.015" />
+  <xacro:property name="radiusLink3" value="0.015" /> 
+  <!-- Delete the line above this once you make it not a cylinder -->
+  <xacro:property name="heightPayload" value="0.5" />
+  <xacro:property name="depthPayload" value="0.35" />
+
   <!-- Used to give the base a prismatic connection to the world (fixed except in y direction) -->
   <link name="world"/>
   <!-- 1 DOF base (joint will be added at bottom)-->
@@ -41,10 +66,10 @@
   <link name="link1">
     <visual>
       <geometry>
-        <cylinder radius="0.05" length="0.6"/>
+        <cylinder radius="${radiusLink1}" length="${lengthLink1}"/>
       </geometry>
       <!-- Rotate cylinder so it lies along X-axis -->
-      <origin xyz="0.3 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="${lengthLink1 / 2} 0 0" rpy="0 1.5708 0"/>
 
       <material name="red">
         <color rgba="1 0 0 1"/>
@@ -54,17 +79,17 @@
 
     <collision>
       <geometry>
-        <cylinder radius="0.05" length="0.6"/>
+        <cylinder radius="${radiusLink1}" length="${lengthLink1}"/>
       </geometry>
-      
-      <origin xyz="0.3 0 0" rpy="0 1.5708 0"/>
+
+      <origin xyz="${lengthLink1 / 2} 0 0" rpy="0 1.5708 0"/>
 
     </collision>
 
     <inertial>
-      <origin xyz="0.3 0 0" rpy="0 0 0"/>
-      <mass value="1.0"/>
-      <inertia ixx="0.00125" ixy="0.0" ixz="0.0" iyy="0.0306" iyz="0.0" izz="0.0306"/>
+      <origin xyz="${COMLink1} 0 0" rpy="0 0 0"/>
+      <mass value="${massLink1}"/>
+      <inertia ixx="${inertiaLink1}" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="${inertiaLink1}"/>
     </inertial>
   </link>
 
@@ -72,10 +97,10 @@
   <link name="link2">
     <visual>
       <geometry>
-        <cylinder radius="0.05" length="0.6"/>
+        <cylinder radius="${radiusLink2}" length="${lengthLink2}"/>
       </geometry>
 
-      <origin xyz="0.3 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="${lengthLink2 / 2} 0 0" rpy="0 1.5708 0"/>
 
       <material name="green">
         <color rgba="0 1 0 1"/>
@@ -85,17 +110,17 @@
 
     <collision>
       <geometry>
-        <cylinder radius="0.05" length="0.6"/>
+        <cylinder radius="${radiusLink2}" length="${lengthLink2}"/>
       </geometry>
 
-      <origin xyz="0.3 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="${lengthLink2 / 2} 0 0" rpy="0 1.5708 0"/>
 
     </collision>
 
     <inertial>
-      <origin xyz="0.3 0 0" rpy="0 0 0"/>
-      <mass value="1.0"/>
-      <inertia ixx="0.00125" ixy="0.0" ixz="0.0" iyy="0.0306" iyz="0.0" izz="0.0306"/>
+      <origin xyz="${COMLink2} 0 0" rpy="0 0 0"/>
+      <mass value="${massLink2}"/>
+      <inertia ixx="${inertiaLink2}" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="${inertiaLink2}"/>
     </inertial>
   </link>
 
@@ -103,10 +128,10 @@
   <link name="link3">
     <visual>
       <geometry>
-        <cylinder radius="0.05" length="0.6"/>
+        <cylinder radius="${radiusLink3}" length="${lengthLink3}"/>
       </geometry>
 
-      <origin xyz="0.3 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="${lengthLink3 / 2} 0 0" rpy="0 1.5708 0"/>
 
       <material name="blue">
         <color rgba="0 0 1 1"/>
@@ -116,17 +141,17 @@
 
     <collision>
       <geometry>
-        <cylinder radius="0.05" length="0.6"/>
+        <cylinder radius="${radiusLink3}" length="${lengthLink3}"/>
       </geometry>
 
-      <origin xyz="0.3 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="${lengthLink3 / 2} 0 0" rpy="0 1.5708 0"/>
       
     </collision>
 
     <inertial>
-      <origin xyz="0.3 0 0" rpy="0 0 0"/>
-      <mass value="1.0"/>
-      <inertia ixx="0.00125" ixy="0.0" ixz="0.0" iyy="0.0306" iyz="0.0" izz="0.0306"/>
+      <origin xyz="${COMLink3} 0 0" rpy="0 0 0"/>
+      <mass value="${massLink3}"/>
+      <inertia ixx="${inertiaLink3}" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="${inertiaLink3}"/>
     </inertial>
 
   </link>
