@@ -2,7 +2,9 @@ from launch import LaunchDescription
 from launch.actions import ExecuteProcess
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+from xacro import process_file
 import os
+import tempfile
 
 def generate_launch_description():
     # -------------------------
@@ -10,15 +12,19 @@ def generate_launch_description():
     # -------------------------
     # URDF from skyforge_description
     description_pkg = get_package_share_directory('skyforge_description')
-    urdf_file = os.path.join(description_pkg, 'urdf', 'skyforge.urdf')
+    urdf_xacro_file = os.path.join(description_pkg, 'urdf', 'skyforge.urdf.xacro')
 
     # Empty world from ros_gz_sim
     ros_gz_sim_share = get_package_share_directory('ros_gz_sim')
     world_file = os.path.join(ros_gz_sim_share, 'worlds', 'empty.sdf')
 
-    # Read URDF contents
-    with open(urdf_file, 'r') as infp:
-        robot_desc = infp.read()
+    # Process xacro and get URDF contents
+    robot_desc = process_file(urdf_xacro_file).toxml()
+    
+    # Write processed URDF to a temporary file for Gazebo to use
+    urdf_temp_fd, urdf_temp_file = tempfile.mkstemp(suffix='.urdf', text=True)
+    with os.fdopen(urdf_temp_fd, 'w') as f:
+        f.write(robot_desc)
 
     # -------------------------
     # Launch Gazebo
@@ -57,7 +63,7 @@ def generate_launch_description():
         executable='create',
         arguments=[
             '-name', 'skyforge',
-            '-file', urdf_file,
+            '-file', urdf_temp_file,
             '-allow_renaming', 'true',
             '-x', '0',
             '-y', '0',
