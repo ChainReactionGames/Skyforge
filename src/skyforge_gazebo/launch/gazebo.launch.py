@@ -4,21 +4,41 @@ from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import TimerAction
 import os
+from launch.substitutions import Command
+from launch_ros.parameter_descriptions import ParameterValue
+from xacro import process_file
+import tempfile
+
 
 def generate_launch_description():
     # Get path to URDF
     description_pkg = get_package_share_directory('skyforge_description')
-    urdf_file = os.path.join(description_pkg, 'urdf', 'skyforge.urdf')
+    urdf_xacro_file = os.path.join(description_pkg, 'urdf', 'skyforge.urdf.xacro')
 
     controllers_pkg = get_package_share_directory('skyforge_controllers')
     controllers_file = os.path.join(controllers_pkg, 'config', 'three_link_arm_controllers.yaml')
     
     gazebo_pkg = get_package_share_directory('skyforge_gazebo')
+    # This next line currently is unused bc the worlds folder doesn't get installed, but right now we just point directly to the src folder
     world_file = os.path.join(gazebo_pkg, 'worlds', 'empty_no_gravity.sdf')
 
-    # Read URDF contents
-    with open(urdf_file, 'r') as infp:
-        robot_desc = infp.read()
+    # Process xacro file to expand all variables
+    robot_desc_processed = process_file(urdf_xacro_file).toxml()
+    
+    # Create a temporary file with the processed URDF for Gazebo to use
+    urdf_temp_fd, urdf_temp_file = tempfile.mkstemp(suffix='.urdf', text=True)
+    with os.fdopen(urdf_temp_fd, 'w') as f:
+        f.write(robot_desc_processed)
+
+    # Read URDF contents from xacro file
+    robot_desc = ParameterValue(
+        Command(['xacro ', urdf_xacro_file]),
+        value_type=str
+    )
+
+    # This is how to read the URDF file if it wasn't using xacro
+    # with open(urdf_file, 'r') as infp:
+    #     robot_desc = infp.read()
 
     # Launch Gazebo (GZ Sim)
     gz_sim = ExecuteProcess(
@@ -36,13 +56,13 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True, 'robot_description': robot_desc}]
     )
 
-    # Spawn the robot into Gazebo
+    # Spawn the robot into Gazebo using the processed URDF with expanded xacro variables
     spawn_entity = Node(
         package='ros_gz_sim',
         executable='create',
         arguments=[
             '-name', 'skyforge',
-            '-file', urdf_file,
+            '-file', urdf_temp_file,
             '-allow_renaming', 'true'
         ],
         output='screen'
