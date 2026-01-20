@@ -129,7 +129,7 @@ namespace lqr_arm_controller
         }
 
         // Compute control input tau = -K * x
-        Eigen::Matrix<double, 3, 1> tau = -K_ * x;
+        Eigen::Matrix<double, 3, 1> tau = -1 * K_ * x;
         //tau(0) = 1; // For testing purposes, set joint1 torque to 1
         RCLCPP_INFO(get_node()->get_logger(), "Computed torques: %f %f %f", tau(0), tau(1), tau(2));   
         // Apply control inputs to command interfaces

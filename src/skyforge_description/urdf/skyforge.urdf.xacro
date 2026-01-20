@@ -25,6 +25,7 @@
   <xacro:property name="heightPayload" value="0.5" />
   <xacro:property name="depthPayload" value="0.35" />
 
+  <!-- MARK: Links -->
   <!-- Used to give the base a prismatic connection to the world (fixed except in y direction) -->
   <link name="world"/>
   <!-- 1 DOF base (joint will be added at bottom)-->
@@ -128,10 +129,10 @@
   <link name="link3">
     <visual>
       <geometry>
-        <cylinder radius="${radiusLink3}" length="${lengthLink3}"/>
+        <box size="${lengthLink3} ${heightPayload} ${depthPayload}"/>
       </geometry>
 
-      <origin xyz="${lengthLink3 / 2} 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="${lengthLink3 / 2} 0 0" rpy="0 0 0"/>
 
       <material name="blue">
         <color rgba="0 0 1 1"/>
@@ -156,6 +157,7 @@
 
   </link>
 
+  <!-- MARK: Joints -->
   <!-- Prismatic joints -->
   <joint name="world_to_base" type="prismatic">
     <parent link="world"/>
@@ -172,28 +174,28 @@
     <origin xyz="0 0.2 0"/>
     <axis xyz="0 0 1"/>
     <limit effort="100000" velocity="100000" lower="0" upper="3.14"/>
-    <dynamics damping="0.1" friction="0.0"/>
+    <dynamics damping="0.0" friction="0.0"/>
   </joint>
 
   <joint name="joint2" type="revolute">
     <parent link="link1"/>
     <child link="link2"/>
-    <origin xyz="0.6 0 0"/>
+    <origin xyz="${lengthLink1} 0 0"/>
     <axis xyz="0 0 1"/>
     <limit effort="100000" velocity="100000" lower="-1.57" upper="1.57"/>
-    <dynamics damping="0.1" friction="0.0"/>
+    <dynamics damping="0.0" friction="0.0"/>
   </joint>
 
   <joint name="joint3" type="revolute">
     <parent link="link2"/>
     <child link="link3"/>
-    <origin xyz="0.6 0 0"/>
+    <origin xyz="${lengthLink2} 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="100000" velocity="100000" lower="-1.57" upper="1.57"/>
-    <dynamics damping="0.1" friction="0.0"/>
+    <limit effort="100000" velocity="100000" lower="-3.14" upper="1.57"/>
+    <dynamics damping="0.0" friction="0.0"/>
   </joint>
 
-
+  <!-- MARK: ROS 2 Control -->
   <ros2_control name="GazeboSimSystem" type="system">
     <hardware>
      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
@@ -239,7 +241,7 @@
         <param name="max">100000</param>
       </command_interface>
      <state_interface name="position">
-        <param name="initial_value">-0.5</param>
+        <param name="initial_value">-0.55</param>
      </state_interface>
      <state_interface name="velocity"/>
      <state_interface name="effort"/>
@@ -247,6 +249,8 @@
 
     </joint>
   </ros2_control>
+
+  <!-- MARK: Gazebo Plugin -->
 <gazebo>
   <plugin filename="/opt/ros/jazzy/lib/libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
     <parameters>/home/dwidjaja/Desktop/Skyforge/src/skyforge_controllers/config/three_link_arm_controllers.yaml</parameters>
