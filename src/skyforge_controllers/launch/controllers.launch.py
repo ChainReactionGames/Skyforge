@@ -75,5 +75,5 @@ def generate_launch_description():
         #base_trajectory_controller,
         #NO MORE trajectory_publisher,
         # base_trajectory_publisher,
-        #base_oscillating_trajectory_publisher
+        base_oscillating_trajectory_publisher
     ])
