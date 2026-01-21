@@ -43,7 +43,7 @@ def generate_launch_description():
     # Launch Gazebo (GZ Sim)
     gz_sim = ExecuteProcess(
         #TODO: Make the worlds folder actually make it to the install so we don't have to point back to the src folder
-        cmd=['gz', 'sim', '-v', '4', '-r', '/home/dwidjaja/Desktop/Skyforge/src/skyforge_gazebo/worlds/empty_no_gravity.sdf'], 
+        cmd=['gz', 'sim', '-v', '4', '-r', '/home/dwidjaja/Skyforge/src/skyforge_gazebo/worlds/empty_no_gravity.sdf'], 
         output='screen'
     )
 

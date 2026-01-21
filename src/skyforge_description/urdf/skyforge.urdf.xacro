@@ -253,7 +253,7 @@
   <!-- MARK: Gazebo Plugin -->
 <gazebo>
   <plugin filename="/opt/ros/jazzy/lib/libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-    <parameters>/home/dwidjaja/Desktop/Skyforge/src/skyforge_controllers/config/three_link_arm_controllers.yaml</parameters>
+    <parameters>/home/dwidjaja/Skyforge/src/skyforge_controllers/config/three_link_arm_controllers.yaml</parameters>
   </plugin>
 </gazebo>
 
