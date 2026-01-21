@@ -18,7 +18,7 @@ class OscillatingBasePublisher(Node):
 
          # Oscillation parameters
         self.amplitude = 0.15       # maximum displacement
-        self.frequency = 0.2       # Hz (cycles per second)
+        self.frequency = 0.1       # Hz (cycles per second)
         self.start_time = self.get_clock().now().nanoseconds / 1e9
 
         timer_period = 1.0 / self.frequency
