@@ -165,7 +165,7 @@
     <child link="base_link"/>
     <origin xyz="0 0 0"/>
     <axis xyz="0 1 0"/> <!-- movement along Y -->
-    <limit lower="-5.0" upper="5.0" effort="50" velocity="5.0"/>
+    <limit lower="-5.0" upper="200.0" effort="50" velocity="5.0"/>
   </joint>
 
   <!-- Revolute joints -->

@@ -27,7 +27,7 @@ class TrajectoryPublisher(Node):
         self.tc = (self.L - self.amax * self.ta**2)/self.vmax  # constant velocity (coast) time
 
 
-        self.stopping = True   # whether to stop after some time
+        self.stopping = False   # whether to stop after some time
         self.stop_time = 90.0  # time to stop the motion if self.stopping is True
 
 
