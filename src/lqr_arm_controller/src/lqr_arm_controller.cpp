@@ -119,9 +119,9 @@ namespace lqr_arm_controller
             e(0) = read_state(2); // joint1 effort
             e(1) = read_state(5); // joint2 effort
             e(2) = read_state(8); // joint3 effort
-            RCLCPP_INFO(get_node()->get_logger(), 
-                "States: J1: %f %f, J2: %f %f, J3: %f %f, Effort: %f %f %f", x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2)
-            );
+            // RCLCPP_INFO(get_node()->get_logger(), 
+            //     "States: J1: %f %f, J2: %f %f, J3: %f %f, Effort: %f %f %f", x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2)
+            // );
 
         } catch (const std::exception & e) {
             RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
@@ -131,7 +131,7 @@ namespace lqr_arm_controller
         // Compute control input tau = -K * x
         Eigen::Matrix<double, 3, 1> tau = -1 * K_ * x;
         //tau(0) = 1; // For testing purposes, set joint1 torque to 1
-        RCLCPP_INFO(get_node()->get_logger(), "Computed torques: %f %f %f", tau(0), tau(1), tau(2));   
+        // RCLCPP_INFO(get_node()->get_logger(), "Computed torques: %f %f %f", tau(0), tau(1), tau(2));   
         // Apply control inputs to command interfaces
         bool ok0 = command_interfaces_[0].set_value(tau(0)); // joint1 effort
         bool ok1 = command_interfaces_[1].set_value(tau(1)); // joint2 effort
