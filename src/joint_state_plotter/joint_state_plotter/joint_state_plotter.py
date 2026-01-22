@@ -16,7 +16,6 @@ class JointStatePlotter(Node):
         self.joint_names = []
         self.initialized = False
 
-        # ----------------- State Histories -----------------
         self.time = deque(maxlen=self.maxlen)
         self.q = {}
         self.qd = {}
@@ -27,13 +26,14 @@ class JointStatePlotter(Node):
         self.Fy = deque(maxlen=self.maxlen)
         self.Tau = deque(maxlen=self.maxlen)
 
-        # ----- Base histories (added) -----
+        # Base histories
         self.base_pos = deque(maxlen=self.maxlen)
         self.base_vel = deque(maxlen=self.maxlen)
+        self.prev_base_pos = None
 
         self.prev_time = None
 
-        # ----------------- ROS Subscription -----------------
+        # Subscribe to joint states
         self.create_subscription(
             JointState,
             '/joint_states',
@@ -41,7 +41,6 @@ class JointStatePlotter(Node):
             10
         )
 
-        # ----------------- Plot Setup -----------------
         try:
             plt.ion()
             self.plots_ready = False
@@ -52,16 +51,14 @@ class JointStatePlotter(Node):
 
         self.get_logger().info("joint_state_plotter running")
 
-    # ==================================================
-    # Joint state callback
-    # ==================================================
+    # ------------------ JointState callback ------------------
     def joint_callback(self, msg: JointState):
         if not msg.name:
             return
 
-        # ----------------- Initialize joints -----------------
         if not self.initialized:
-            self.joint_names = msg.name[:3]
+            # Track first 3 non-base joints
+            self.joint_names = [n for n in msg.name if n != "world_to_base"][:3]
             for j in self.joint_names:
                 self.q[j] = deque(maxlen=self.maxlen)
                 self.qd[j] = deque(maxlen=self.maxlen)
@@ -70,7 +67,7 @@ class JointStatePlotter(Node):
 
             try:
                 self._setup_plots()
-            except Exception:
+            except:
                 self.get_logger().warn("Failed to setup plots")
 
             self.initialized = True
@@ -88,35 +85,44 @@ class JointStatePlotter(Node):
 
         self.time.append(now)
 
-        # ----------------- Update joint states -----------------
+        # --- Update arm joints ---
         for j in self.joint_names:
-            idx = msg.name.index(j)
-            q = abs(msg.position[idx])
-            qd = msg.velocity[idx] if msg.velocity else 0.0
-            qdd = (qd - self.prev_qd[j]) / dt
+            if j in msg.name:
+                idx = msg.name.index(j)
+                q = msg.position[idx]
+                qd = msg.velocity[idx] if msg.velocity else 0.0
+                qdd = (qd - self.prev_qd[j]) / dt
 
-            self.q[j].append(q)
-            self.qd[j].append(qd)
-            self.qdd[j].append(qdd)
-            self.prev_qd[j] = qd
+                self.q[j].append(q)
+                self.qd[j].append(qd)
+                self.qdd[j].append(qdd)
+                self.prev_qd[j] = qd
 
-        # ----------------- Update base states (added) -----------------
-        base_joint = self.joint_names[0]
-        self.base_pos.append(self.q[base_joint][-1])
-        self.base_vel.append(self.qd[base_joint][-1])
-        # -------------------------------------------------------------
+        # --- Update base from "world_to_base" joint ---
+        if "world_to_base" in msg.name:
+            idx = msg.name.index("world_to_base")
+            base_p = msg.position[idx]
+            self.base_pos.append(base_p)
+
+            # Use velocity from msg if available, else finite difference
+            if msg.velocity and len(msg.velocity) > idx:
+                self.base_vel.append(msg.velocity[idx])
+            elif self.prev_base_pos is not None:
+                self.base_vel.append((base_p - self.prev_base_pos) / dt)
+            else:
+                self.base_vel.append(0.0)
+
+            self.prev_base_pos = base_p
 
         self.prev_time = now
 
-        # ----------------- Compute forces -----------------
+        # Compute forces/torque
         fx, fy, tau = self.compute_forces()
         self.Fx.append(fx)
         self.Fy.append(fy)
         self.Tau.append(tau)
 
-    # ==================================================
-    # Compute forces & torque
-    # ==================================================
+    # ------------------ Forces computation ------------------
     def compute_forces(self):
         q1, q2, q3 = [self.q[j][-1] for j in self.joint_names]
         v1, v2, v3 = [self.qd[j][-1] for j in self.joint_names]
@@ -147,83 +153,70 @@ class JointStatePlotter(Node):
         )
 
         Tau = ((a1 + a2 + a3)*l3
-               - c3*m3*np.sin(q1+q2+q3) * (
-                   -l1*v1**2*np.cos(q1)
-                   - l2*(v1+v2)**2*np.cos(q1+q2)
-                   - c3*(v1+v2+v3)**2*np.cos(q1+q2+q3)
-                   - a1*l1*np.sin(q1)
-                   - (a1+a2)*l2*np.sin(q1+q2)
-                   - (a1+a2+a3)*c3*np.sin(q1+q2+q3)
-               )
-               + c3*m3*np.cos(q1+q2+q3) * (
-                   aM
-                   + a1*l1*np.cos(q1)
-                   + (a1+a2)*l2*np.cos(q1+q2)
-                   + (a1+a2+a3)*c3*np.cos(q1+q2+q3)
-                   - l1*v1**2*np.sin(q1)
-                   - l2*(v1+v2)**2*np.sin(q1+q2)
-                   - c3*(v1+v2+v3)**2*np.sin(q1+q2+q3)
-               )
+            - c3*m3*np.sin(q1+q2+q3) * (
+                -l1*v1**2*np.cos(q1)
+                - l2*(v1+v2)**2*np.cos(q1+q2)
+                - c3*(v1+v2+v3)**2*np.cos(q1+q2+q3)
+                - a1*l1*np.sin(q1)
+                - (a1+a2)*l2*np.sin(q1+q2)
+                - (a1+a2+a3)*c3*np.sin(q1+q2+q3)
+            )
+            + c3*m3*np.cos(q1+q2+q3) * (
+                aM
+                + a1*l1*np.cos(q1)
+                + (a1+a2)*l2*np.cos(q1+q2)
+                + (a1+a2+a3)*c3*np.cos(q1+q2+q3)
+                - l1*v1**2*np.sin(q1)
+                - l2*(v1+v2)**2*np.sin(q1+q2)
+                - c3*(v1+v2+v3)**2*np.sin(q1+q2+q3)
+            )
         )
 
         return Fx, Fy, Tau
 
-    # ==================================================
-    # Setup all plots
-    # ==================================================
+    # ------------------ Plot setup ------------------
     def _setup_plots(self):
         plt.ion()
 
-        # Joint forces/torque
         self.fig_fx, self.ax_fx = plt.subplots()
-        self.line_fx, = self.ax_fx.plot([0], [0], label="Fx (N)")
+        self.line_fx, = self.ax_fx.plot([], [], label="Fx (N)")
         self.ax_fx.set_title("Force in X")
 
         self.fig_fy, self.ax_fy = plt.subplots()
-        self.line_fy, = self.ax_fy.plot([0], [0], label="Fy (N)")
+        self.line_fy, = self.ax_fy.plot([], [], label="Fy (N)")
         self.ax_fy.set_title("Force in Y")
 
         self.fig_tau, self.ax_tau = plt.subplots()
-        self.line_tau, = self.ax_tau.plot([0], [0], label="Torque")
+        self.line_tau, = self.ax_tau.plot([], [], label="Torque")
         self.ax_tau.set_title("Torque")
 
-        # Joint acceleration
         self.fig_acc, self.ax_acc = plt.subplots()
-        self.acc_lines = {j: self.ax_acc.plot([0], [0], label=f"{j} accel")[0] for j in self.joint_names[:3]}
+        self.acc_lines = {j: self.ax_acc.plot([], [], label=f"{j} accel")[0] for j in self.joint_names}
         self.ax_acc.set_title("Joint Accelerations")
 
-        # Joint positions
         self.fig_q, self.ax_q = plt.subplots()
-        self.q_lines = {j: self.ax_q.plot([0], [0], label=f"{j} pos")[0] for j in self.joint_names[:3]}
+        self.q_lines = {j: self.ax_q.plot([], [], label=f"{j} pos")[0] for j in self.joint_names}
         self.ax_q.set_title("Joint Positions")
 
-        # ----- Base position (added) -----
+        # Base plots
         self.fig_bp, self.ax_bp = plt.subplots()
-        self.line_bp, = self.ax_bp.plot([0], [0], label="Base Position")
+        self.line_bp, = self.ax_bp.plot([], [], label="Base Position")
         self.ax_bp.set_title("Base Position")
 
-        # ----- Base velocity (added) -----
         self.fig_bv, self.ax_bv = plt.subplots()
-        self.line_bv, = self.ax_bv.plot([0], [0], label="Base Velocity")
+        self.line_bv, = self.ax_bv.plot([], [], label="Base Velocity")
         self.ax_bv.set_title("Base Velocity")
 
-        for ax in [
-            self.ax_fx, self.ax_fy, self.ax_tau,
-            self.ax_acc, self.ax_q,
-            self.ax_bp, self.ax_bv
-        ]:
+        for ax in [self.ax_fx, self.ax_fy, self.ax_tau, self.ax_acc, self.ax_q, self.ax_bp, self.ax_bv]:
             ax.legend()
             ax.grid(True)
 
         self.plots_ready = True
 
-    # ==================================================
-    # Update plots safely
-    # ==================================================
+    # ------------------ Plot update ------------------
     def update_plots(self):
         if not self.plots_ready or len(self.time) < 2:
             return
-
         try:
             t = np.array(self.time) - self.time[0]
 
@@ -231,35 +224,22 @@ class JointStatePlotter(Node):
             self.line_fy.set_data(t, self.Fy)
             self.line_tau.set_data(t, self.Tau)
 
-            for j in self.joint_names[:3]:
-                if len(self.qdd[j]) > 0:
-                    self.acc_lines[j].set_data(t, self.qdd[j])
-                if len(self.q[j]) > 0:
-                    self.q_lines[j].set_data(t, self.q[j])
+            for j in self.joint_names:
+                self.acc_lines[j].set_data(t, self.qdd[j])
+                self.q_lines[j].set_data(t, self.q[j])
 
-            # ----- Base plots (added) -----
-            if len(self.base_pos) > 0:
-                self.line_bp.set_data(t, self.base_pos)
-            if len(self.base_vel) > 0:
-                self.line_bv.set_data(t, self.base_vel)
-            # --------------------------------
+            self.line_bp.set_data(t, self.base_pos)
+            self.line_bv.set_data(t, self.base_vel)
 
-            for ax in [
-                self.ax_fx, self.ax_fy, self.ax_tau,
-                self.ax_acc, self.ax_q,
-                self.ax_bp, self.ax_bv
-            ]:
+            for ax in [self.ax_fx, self.ax_fy, self.ax_tau, self.ax_acc, self.ax_q, self.ax_bp, self.ax_bv]:
                 ax.relim()
                 ax.autoscale_view()
 
             plt.pause(0.001)
-
         except Exception:
             pass
 
-    # ==================================================
-    # Print performance metrics
-    # ==================================================
+    # ------------------ Print metrics ------------------
     def print_metrics(self):
         try:
             t = np.array(self.time) - self.time[0] if self.time else np.array([0])
@@ -272,7 +252,7 @@ class JointStatePlotter(Node):
                 "Base Vel": self.base_vel
             }
 
-            for j in self.joint_names[:3]:
+            for j in self.joint_names:
                 signals[f"{j} Pos"] = self.q[j]
                 signals[f"{j} Accel"] = self.qdd[j]
 
@@ -291,6 +271,7 @@ class JointStatePlotter(Node):
             sys.stdout.flush()
         except Exception:
             traceback.print_exc()
+
 
 def main(args=None):
     rclpy.init(args=args)
