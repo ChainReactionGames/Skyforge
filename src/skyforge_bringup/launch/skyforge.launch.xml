@@ -9,7 +9,7 @@
   <!-- Skyforge Controller simulation Uncomment to add-->
   <include file="$(find-pkg-share skyforge_controllers)/launch/controllers.launch.py" /> 
 
-  <!-- calcualtions for Control system math -->
+  <!-- calculations for Control system math -->
   <include file="$(find-pkg-share joint_state_plotter)/launch/joint_plotter.launch.py" />
 
 </launch>
