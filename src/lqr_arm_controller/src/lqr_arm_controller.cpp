@@ -109,9 +109,9 @@ namespace lqr_arm_controller
         Eigen::Matrix<double, 3, 1> e;
 
         try {
-            x(0) = read_state(0) - 1.07079632679; // joint1 pos
-            x(1) = read_state(3) - 1.0; // joint2 pos
-            x(2) = read_state(6) - (-0.5); // joint3 pos
+            x(0) = read_state(0) - 1.984107747; // joint1 pos
+            x(1) = read_state(3) - (-1.318508983); // joint2 pos
+            x(2) = read_state(6) - 0.905197563; // joint3 pos
             x(3) = read_state(1); // joint1 vel
             x(4) = read_state(4); // joint2 vel
             x(5) = read_state(7); // joint3 vel
