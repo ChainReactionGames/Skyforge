@@ -48,19 +48,27 @@ lqr_arm_controller:
     #      0.943758, 0.757951, 0.227709, 5.71546, 4.17311, 2.49787,   # joint2: 50*angle + 16*velocity
     #      -1.65591, -0.77776, -0.0567327, -9.99926, -5.91985, -2.06833]   # joint3: 35*angle + 12*velocity
 
-base_trajectory_controller:
+
+base_velocity_controller:
   ros__parameters:
-    type: joint_trajectory_controller/JointTrajectoryController
+    type: velocity_controllers/JointGroupVelocityController
     joints:
       - world_to_base
-    command_interfaces:
-      - position
-      # - velocity
-    state_interfaces:
-      - position
-      - velocity
+    interface_name: velocity
 
-    allow_nonzero_velocity_at_trajectory_end: true
+# base_trajectory_controller:
+#   ros__parameters:
+#     type: joint_trajectory_controller/JointTrajectoryController
+#     joints:
+#       - world_to_base
+#     command_interfaces:
+#       - position
+#       # - velocity
+#     state_interfaces:
+#       - position
+#       - velocity
+
+#     allow_nonzero_velocity_at_trajectory_end: true
 
 
     # Working Version from demo:

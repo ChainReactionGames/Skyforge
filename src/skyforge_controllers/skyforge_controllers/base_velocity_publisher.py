@@ -6,15 +6,16 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
 import math
 from controller_manager_msgs.srv import ListControllers
+from std_msgs.msg import Float64MultiArray
 
-class TrajectoryPublisher(Node):
+class VelocityPublisher(Node):
     def __init__(self):
-        super().__init__('trajectory_publisher')
-        
+        super().__init__('velocity_publisher')
+
         self.publisher_ = self.create_publisher(
-            JointTrajectory,
-            '/base_trajectory_controller/joint_trajectory',
-            1
+            Float64MultiArray,
+            '/base_velocity_controller/commands',
+            10
         )
 
         # Acceleration parameters
@@ -31,18 +32,9 @@ class TrajectoryPublisher(Node):
         self.stop_time = 90.0  # time to stop the motion if self.stopping is True
 
 
-        # Trajectory publishing parameters
+        # Velocity publishing parameters
 
-        self.dt = 0.02              # time step for trajectory points
-        self.horizon = 2.0          # seconds of trajectory to publish each time
-        self.publish_period = 0.1   # seconds between trajectory publications
-
-        # State variables
-        self.t0 = self.get_clock().now().nanoseconds / 1e9
-        self.last_t = 0.0  # time since start
-        self.y = 0.0       # current position
-        self.v = 0.0       # current velocity
-
+        self.dt = 0.01              # time step for velocity points (100 Hz matches controller update rate)
 
         # self.declare_parameter('use_sim_time', True)
 
@@ -53,12 +45,15 @@ class TrajectoryPublisher(Node):
 
         # Wait for controller to be active
         self.wait_for_controller_active('lqr_arm_controller')
-        self.wait_for_controller_active('base_trajectory_controller')
+        self.wait_for_controller_active('base_velocity_controller')
 
-        self.t0 = self.get_clock().now().nanoseconds / 1e9
+        self.timer = self.create_timer(self.dt, self.tick)
+        
+        # State variables
+        self.t0 = self.get_clock().now().nanoseconds / 1e9 # time at start
+        self.v = 0.0       # current velocity
 
-        self.timer = self.create_timer(self.publish_period, self.send_trajectory)
-        self.get_logger().info("Trajectory Publisher Node Started (aM based)")
+        self.get_logger().info("Velocity Publisher Node Started (aM based)")
 
     def wait_for_controller_active(self, controller_name: str, timeout: float = 30.0) -> bool:
         client = self.create_client(ListControllers, 'controller_manager/list_controllers')
@@ -107,86 +102,24 @@ class TrajectoryPublisher(Node):
         else:
             return 0.0
 
-    def to_duration(self, t: float) -> Duration:
-        sec = int(math.floor(t))
-        nanosec = int((t - sec) * 1e9)
-        return Duration(sec=sec, nanosec=nanosec)
+    def tick(self):
+        now = self.get_clock().now().nanoseconds * 1e-9
+        acc = self.aM(now - self.t0)
 
-    def integrate_to(self, t_end: float):
-        t = self.last_t
-        y = self.y
-        v = self.v
-        while t < t_end - 1e-12:
-            h = min(self.dt, t_end - t)
-            a = self.aM(t)
-            v += a * h
-            y += v * h
-            t += h
+        # Integrate acceleration → velocity
+        self.v += acc * self.dt
 
-        self.last_t = t
-        self.y = y
-        self.v = v
+        # Safety clamp
+        self.v = max(min(self.v, self.vmax), 0.0)
 
-    def sample_state_at(self, t_query: float):
-        self.integrate_to(t_query)
-        return self.y, self.v
-    
-    def send_trajectory(self):
-        now = self.get_clock().now().nanoseconds / 1e9
-        t_now = now - self.t0
+        msg = Float64MultiArray()
+        msg.data = [float(self.v)]
+        self.publisher_.publish(msg)
 
-        self.sample_state_at(t_now)
-        y0, v0 = self.y, self.v
-
-        traj = JointTrajectory()
-        traj.joint_names = ['world_to_base']
-        traj.header.stamp.sec = 0
-        traj.header.stamp.nanosec = 0
-        # traj.header.stamp = self.get_clock().now().to_msg()
-
-        t_rel = 0.0
-        while t_rel < self.horizon + 1e-12:
-            t_abs = t_now + t_rel
-            y, v = self.sample_state_at(t_abs)
-
-            pt = JointTrajectoryPoint()
-            pt.positions = [float(y)]
-            pt.velocities = [float(v)]
-            pt.time_from_start = self.to_duration(t_rel)
-            traj.points.append(pt)
-
-            t_rel += self.dt
-
-        self.publisher_.publish(traj)
-        self.get_logger().info("Published base trajectory command from t={:.3f} s, pos {:.3f} m, vel {:.3f} m/s".format(t_now, y0, v0))
-
-        # # Point 1: Starting at zero
-        # point1 = JointTrajectoryPoint()
-        # point1.positions = [0]
-        # point1.velocities = [0]
-        # point1.time_from_start.sec = 0
-        # traj.points.append(point1)
-
-        # # Point 2: Moving at constant speed
-        # point2 = JointTrajectoryPoint()
-        # point2.positions = [2.0]
-        # point2.velocities = [0]
-        # point2.time_from_start.sec = 4
-        # traj.points.append(point2)
-
-        # # Point 3: Moving at constant speed
-        # point3 = JointTrajectoryPoint()
-        # point3.positions = [4.0]
-        # point3.velocities = [0]
-        # point3.time_from_start.sec = 8
-        # traj.points.append(point3)
-
-        # self.publisher_.publish(traj)
-        # self.get_logger().info("Base trajectory command published!")
 
 def main(args=None):
     rclpy.init(args=args)
-    node = TrajectoryPublisher()
+    node = VelocityPublisher()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
