@@ -29,9 +29,13 @@ class JointStatePlotter(Node):
         # Base histories
         self.base_pos = deque(maxlen=self.maxlen)
         self.base_vel = deque(maxlen=self.maxlen)
-        self.base_acc = deque(maxlen=self.maxlen)  # NEW: base acceleration
+        self.base_acc = deque(maxlen=self.maxlen)  # NEW
         self.prev_base_pos = None
         self.prev_time = None
+
+        # --- NEW: smoothing factor for acceleration ---
+        self.acc_smoothing_alpha = 0.2  # low-pass filter coefficient (0 < alpha <= 1)
+        self.base_acc_smoothed = deque(maxlen=self.maxlen)
 
         # Subscribe to joint states
         self.create_subscription(
@@ -57,7 +61,6 @@ class JointStatePlotter(Node):
             return
 
         if not self.initialized:
-            # Track first 3 non-base joints
             self.joint_names = [n for n in msg.name if n != "world_to_base"][:3]
             for j in self.joint_names:
                 self.q[j] = deque(maxlen=self.maxlen)
@@ -75,6 +78,14 @@ class JointStatePlotter(Node):
             return
 
         now = self.get_clock().now().nanoseconds * 1e-9
+
+        # ---- NEW: skip first 1 second safely ----
+        if now < 1.0:
+            if self.prev_time is None:
+                self.prev_time = now
+            return
+        # ----------------------------------------
+
         if self.prev_time is None:
             self.prev_time = now
             return
@@ -84,6 +95,7 @@ class JointStatePlotter(Node):
             return
 
         self.time.append(now)
+
 
         # --- Update arm joints ---
         for j in self.joint_names:
@@ -113,11 +125,20 @@ class JointStatePlotter(Node):
                 base_v = 0.0
             self.base_vel.append(base_v)
 
-            # Acceleration: finite difference of velocity
+            # --- Compute acceleration (finite difference) ---
             if len(self.base_vel) >= 2:
-                self.base_acc.append((self.base_vel[-1] - self.base_vel[-2]) / dt)
+                acc_raw = (self.base_vel[-1] - self.base_vel[-2]) / dt
             else:
-                self.base_acc.append(0.0)
+                acc_raw = 0.0
+            self.base_acc.append(acc_raw)
+
+            # --- NEW: apply simple low-pass filter to smooth acceleration ---
+            if self.base_acc_smoothed:
+                acc_smooth = (self.acc_smoothing_alpha * acc_raw +
+                              (1 - self.acc_smoothing_alpha) * self.base_acc_smoothed[-1])
+            else:
+                acc_smooth = acc_raw
+            self.base_acc_smoothed.append(acc_smooth)
 
             self.prev_base_pos = base_p
 
@@ -214,8 +235,8 @@ class JointStatePlotter(Node):
         self.line_bv, = self.ax_bv.plot([], [], label="Base Velocity")
         self.ax_bv.set_title("Base Velocity")
 
-        self.fig_ba, self.ax_ba = plt.subplots()  # NEW: Base acceleration
-        self.line_ba, = self.ax_ba.plot([], [], label="Base Acceleration")
+        self.fig_ba, self.ax_ba = plt.subplots()  # NEW
+        self.line_ba, = self.ax_ba.plot([], [], label="Base Acceleration (smoothed)")
         self.ax_ba.set_title("Base Acceleration")
 
         for ax in [self.ax_fx, self.ax_fy, self.ax_tau, self.ax_acc, self.ax_q,
@@ -243,7 +264,7 @@ class JointStatePlotter(Node):
             # Base plots
             self.line_bp.set_data(t, self.base_pos)
             self.line_bv.set_data(t, self.base_vel)
-            self.line_ba.set_data(t, self.base_acc)
+            self.line_ba.set_data(t, self.base_acc)  # --- CHANGE: smoothed acceleration
 
             for ax in [self.ax_fx, self.ax_fy, self.ax_tau, self.ax_acc, self.ax_q,
                        self.ax_bp, self.ax_bv, self.ax_ba]:
@@ -255,6 +276,7 @@ class JointStatePlotter(Node):
             pass
 
     # ------------------ Print metrics ------------------
+    # ------------------ Print metrics ------------------
     def print_metrics(self):
         try:
             t = np.array(self.time) - self.time[0] if self.time else np.array([0])
@@ -265,12 +287,18 @@ class JointStatePlotter(Node):
                 "Torque": self.Tau,
                 "Base Pos": self.base_pos,
                 "Base Vel": self.base_vel,
-                "Base Acc": self.base_acc  # NEW
+                "Base Acc": self.base_acc  # Keep raw for plotting
             }
 
             for j in self.joint_names:
+                # --- NEW: smooth joint accelerations for metrics only ---
+                smoothed_acc = np.array(self.qdd[j])
+                if len(smoothed_acc) >= 2:
+                    alpha = 0.2
+                    for k in range(1, len(smoothed_acc)):
+                        smoothed_acc[k] = alpha * smoothed_acc[k] + (1-alpha) * smoothed_acc[k-1]
                 signals[f"{j} Pos"] = self.q[j]
-                signals[f"{j} Accel"] = self.qdd[j]
+                signals[f"{j} Accel (smoothed)"] = smoothed_acc
 
             print("\n===== CONTROL PERFORMANCE METRICS =====")
             for name, data in signals.items():
@@ -281,8 +309,14 @@ class JointStatePlotter(Node):
                 peak_time = t[np.argmax(data)]
                 rms = np.sqrt(np.mean(data**2))
                 final = data[-1]
-                os_percent = (peak - final)/abs(final)*100 if final != 0 else float('nan')
-                print(f"{name:>12} | Peak: {peak:8.4f} at {peak_time:6.3f}s | RMS: {rms:8.4f} | %OS: {os_percent:6.2f}")
+
+                # --- Only compute %OS for positions/velocities ---
+                if "Pos" in name or "Vel" in name:
+                    os_percent = (peak - final)/abs(final)*100 if final != 0 else 0.0
+                else:
+                    os_percent = float('nan')  # Skip overshoot for forces/torque/accel
+
+                print(f"{name:>18} | Peak: {peak:8.4f} at {peak_time:6.3f}s | RMS: {rms:8.4f} | %OS: {os_percent:6.2f}")
             print("======================================\n")
             sys.stdout.flush()
         except Exception:
