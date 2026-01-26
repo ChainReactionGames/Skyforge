@@ -5,19 +5,22 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-# joint_trajectory_controller:
-#   ros__parameters:
-#     type: joint_trajectory_controller/JointTrajectoryController
-#     joints:
-#       - joint1
-#       - joint2
-#       - joint3
-#     command_interfaces:
-#       - effort
-#     state_interfaces:
-#       - position
-#       - velocity
-#       # - acceleration 
+external_torque_controller:
+  ros__parameters:
+    type: external_torque_controller/ExternalTorqueController
+    joints:
+      - joint1
+      - joint2
+      - joint3
+    topic: "/tau_cmd"
+    timeout_sec: 0.05
+
+base_velocity_controller:
+  ros__parameters:
+    type: velocity_controllers/JointGroupVelocityController
+    joints:
+      - world_to_base
+    interface_name: velocity
 
 lqr_arm_controller:
   ros__parameters:
@@ -31,7 +34,7 @@ lqr_arm_controller:
     state_interfaces:
       - position
       - velocity
-    # LQR Gain Matrix K0.05NEW:
+    # LQR Gain Matrix (will be multiplied by -10 in the controller code)
     K: [4.48623,  2.14097,   0.64492,    26.6525,  17.3652,   8.32901,
         0.954329, 0.76644,   0.23026,     5.74737,  4.19641,  2.51182,
         -1.67446, -0.786471, -0.0573681, -10.0551,  -5.95291, -2.07988]
@@ -49,12 +52,7 @@ lqr_arm_controller:
     #      -1.65591, -0.77776, -0.0567327, -9.99926, -5.91985, -2.06833]   # joint3: 35*angle + 12*velocity
 
 
-base_velocity_controller:
-  ros__parameters:
-    type: velocity_controllers/JointGroupVelocityController
-    joints:
-      - world_to_base
-    interface_name: velocity
+
 
 # base_trajectory_controller:
 #   ros__parameters:
