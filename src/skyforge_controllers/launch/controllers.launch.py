@@ -76,7 +76,8 @@ def generate_launch_description():
     return LaunchDescription([
         controller_manager,
         joint_state_broadcaster,
-        #lqr_arm_controller,
+        #NO MORE joint_trajectory_controller,
+        lqr_arm_controller,
         #base_trajectory_controller,
         base_velocity_publisher
     ])
