@@ -7,9 +7,6 @@
 namespace lqr_arm_controller
 {
 
-/* =========================
- * Initialization
- * ========================= */
 controller_interface::CallbackReturn
 LQRArmController::on_init()
 {
@@ -18,9 +15,7 @@ LQRArmController::on_init()
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-/* =========================
- * Interface configuration
- * ========================= */
+
 controller_interface::InterfaceConfiguration
 LQRArmController::command_interface_configuration() const
 {
@@ -45,9 +40,7 @@ LQRArmController::state_interface_configuration() const
   };
 }
 
-/* =========================
- * Activation
- * ========================= */
+
 controller_interface::CallbackReturn
 LQRArmController::on_activate(const rclcpp_lifecycle::State &)
 {
@@ -60,7 +53,7 @@ LQRArmController::on_activate(const rclcpp_lifecycle::State &)
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // 🔴 ADDED: always-on debug publisher (NO lazy publishing)
+  // ADDED: always-on debug publisher (NO lazy publishing)
   torque_pub_ =
     get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
       "~/commands", rclcpp::SystemDefaultsQoS());
@@ -135,12 +128,20 @@ LQRArmController::update(
   // UNCHANGED control law
   Eigen::Matrix<double, 3, 1> tau = -10 * K_ * x;
 
-  // UNCHANGED command interface writes
-  command_interfaces_[0].set_value(tau(0));
-  command_interfaces_[1].set_value(tau(1));
-  command_interfaces_[2].set_value(tau(2));
+  // Use this to remove warnings
+  bool ok0 = command_interfaces_[0].set_value(tau(0));
+  bool ok1 = command_interfaces_[1].set_value(tau(1));
+  bool ok2 = command_interfaces_[2].set_value(tau(2));
+  
+  if (!(ok0 && ok1 && ok2))
+  {
+    RCLCPP_WARN_THROTTLE(
+        get_node()->get_logger(),
+        *get_node()->get_clock(),
+        1000,
+        "Failed to write one or more joint effort commands");
+    }
 
-  // 🔴 ADDED: explicit torque publication (NO echo-triggered behavior)
   std_msgs::msg::Float64MultiArray msg;
   msg.data = {tau(0), tau(1), tau(2)};
   torque_pub_->publish(msg);
