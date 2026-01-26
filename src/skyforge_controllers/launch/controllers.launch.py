@@ -46,7 +46,13 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Pick EITHER this one OR the stepping one OR the oscillating one
+    base_velocity_publisher = Node(
+        package='skyforge_controllers',
+        executable='base_velocity_publisher',
+        output='screen'
+    )
+
+    # legacy trajectory publishers from when base_trajectory_controller was used instead of velocity controller
     base_trajectory_publisher = Node(
         package='skyforge_controllers',
         executable='base_trajectory_publisher',
@@ -73,7 +79,5 @@ def generate_launch_description():
         #NO MORE joint_trajectory_controller,
         lqr_arm_controller,
         #base_trajectory_controller,
-        #NO MORE trajectory_publisher,
-         base_trajectory_publisher,
-        #base_oscillating_trajectory_publisher
+        base_velocity_publisher
     ])

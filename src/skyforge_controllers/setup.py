@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'three_link_trajectory_publisher = skyforge_controllers.three_link_trajectory_publisher:main',
             'base_trajectory_publisher = skyforge_controllers.base_trajectory_publisher:main',
+            'base_velocity_publisher = skyforge_controllers.base_velocity_publisher:main',
             'base_stepping_trajectory_publisher = skyforge_controllers.base_stepping_trajectory_publisher:main',
             'base_oscillating_trajectory_publisher = skyforge_controllers.base_oscillating_trajectory_publisher:main',
 

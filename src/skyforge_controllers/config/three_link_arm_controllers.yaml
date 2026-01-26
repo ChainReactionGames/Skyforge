@@ -31,28 +31,44 @@ lqr_arm_controller:
     state_interfaces:
       - position
       - velocity
-
-    K: [ 4.48623,  2.14097,   0.64492,    26.6525,  17.3652,   8.32901,
-         0.954329, 0.76644,   0.23026,     5.74737,  4.19641,  2.51182,
+    # LQR Gain Matrix K0.05NEW:
+    K: [4.48623,  2.14097,   0.64492,    26.6525,  17.3652,   8.32901,
+        0.954329, 0.76644,   0.23026,     5.74737,  4.19641,  2.51182,
         -1.67446, -0.786471, -0.0573681, -10.0551,  -5.95291, -2.07988]
+    
+    # [0.660458,  0.274236,   0.00956766,  3.44008,   1.95664,   0.251072,
+    #    -0.152342, -0.0602229, -0.00200757, -0.798016, -0.358789, -0.00825506,
+    #    -0.657152, -0.339156,  -0.00748567, -3.43552,  -1.92146,  -0.181361]
+
+    # K0.0632: [ 4.48623,  2.14097,   0.64492,    26.6525,  17.3652,   8.32901,
+    #      0.954329, 0.76644,   0.23026,     5.74737,  4.19641,  2.51182,
+    #     -1.67446, -0.786471, -0.0573681, -10.0551,  -5.95291, -2.07988]
 
     # K0.0625: [4.43654, 2.11726, 0.637776, 26.5045, 17.2688, 8.28275,   # joint1: 60*angle + 18*velocity
     #      0.943758, 0.757951, 0.227709, 5.71546, 4.17311, 2.49787,   # joint2: 50*angle + 16*velocity
     #      -1.65591, -0.77776, -0.0567327, -9.99926, -5.91985, -2.06833]   # joint3: 35*angle + 12*velocity
 
-base_trajectory_controller:
+
+base_velocity_controller:
   ros__parameters:
-    type: joint_trajectory_controller/JointTrajectoryController
+    type: velocity_controllers/JointGroupVelocityController
     joints:
       - world_to_base
-    command_interfaces:
-      - position
-      # - velocity
-    state_interfaces:
-      - position
-      - velocity
-      
-    allow_nonzero_velocity_at_trajectory_end: true
+    interface_name: velocity
+
+# base_trajectory_controller:
+#   ros__parameters:
+#     type: joint_trajectory_controller/JointTrajectoryController
+#     joints:
+#       - world_to_base
+#     command_interfaces:
+#       - position
+#       # - velocity
+#     state_interfaces:
+#       - position
+#       - velocity
+
+#     allow_nonzero_velocity_at_trajectory_end: true
 
 
     # Working Version from demo:

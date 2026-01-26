@@ -108,23 +108,29 @@ LQRArmController::update(
     return *val;
   };
 
-  Eigen::Matrix<double, 6, 1> x;
+        // Construct state vector x = [q1, q2, q3, dq1, dq2, dq3, e1, e2, e3]^T
+        Eigen::Matrix<double, 6, 1> x;
+        Eigen::Matrix<double, 3, 1> e;
 
-  try
-  {
-    // UNCHANGED state construction
-    x << read_state(0) - 1.07079632679,
-         read_state(3) - 1.0,
-         read_state(6) + 0.5,
-         read_state(1),
-         read_state(4),
-         read_state(7);
-  }
-  catch (const std::exception &e)
-  {
-    RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
-    return controller_interface::return_type::ERROR;
-  }
+        try {
+            x(0) = read_state(0) - 1.984107747; // joint1 pos
+            x(1) = read_state(3) - (-1.318508983); // joint2 pos
+            x(2) = read_state(6) - 0.905197563; // joint3 pos
+            x(3) = read_state(1); // joint1 vel
+            x(4) = read_state(4); // joint2 vel
+            x(5) = read_state(7); // joint3 vel
+
+            e(0) = read_state(2); // joint1 effort
+            e(1) = read_state(5); // joint2 effort
+            e(2) = read_state(8); // joint3 effort
+            // RCLCPP_INFO(get_node()->get_logger(), 
+            //     "States: J1: %f %f, J2: %f %f, J3: %f %f, Effort: %f %f %f", x(0), x(1), x(2), x(3), x(4), x(5), e(0), e(1), e(2)
+            // );
+
+        } catch (const std::exception & e) {
+            RCLCPP_ERROR(get_node()->get_logger(), "%s", e.what());
+            return controller_interface::return_type::ERROR;
+        }
 
   // UNCHANGED control law
   Eigen::Matrix<double, 3, 1> tau = -K_ * x;
