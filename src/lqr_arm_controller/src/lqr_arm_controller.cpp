@@ -133,7 +133,7 @@ LQRArmController::update(
         }
 
   // UNCHANGED control law
-  Eigen::Matrix<double, 3, 1> tau = -K_ * x;
+  Eigen::Matrix<double, 3, 1> tau = -10 * K_ * x;
 
   // UNCHANGED command interface writes
   command_interfaces_[0].set_value(tau(0));
