@@ -4,6 +4,7 @@ controller_manager:
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+      publish_rate: 100
 
 external_torque_controller:
   ros__parameters:
@@ -13,7 +14,7 @@ external_torque_controller:
       - joint2
       - joint3
     topic: "/tau_cmd"
-    timeout_sec: 0.05
+    timeout_sec: 0.1
 
 base_velocity_controller:
   ros__parameters:

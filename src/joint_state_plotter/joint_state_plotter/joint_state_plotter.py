@@ -236,7 +236,7 @@ class JointStatePlotter(Node):
         self.ax_bv.set_title("Base Velocity")
 
         self.fig_ba, self.ax_ba = plt.subplots()  # NEW
-        self.line_ba, = self.ax_ba.plot([], [], label="Base Acceleration (smoothed)")
+        self.line_ba, = self.ax_ba.plot([], [], label="Base Acceleration")
         self.ax_ba.set_title("Base Acceleration")
 
         for ax in [self.ax_fx, self.ax_fy, self.ax_tau, self.ax_acc, self.ax_q,
