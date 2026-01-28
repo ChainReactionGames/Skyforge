@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>serial_bridge</name>
+  <version>0.0.1</version>
+  <description>Serial bridge between ESP32 and ROS2 for torque/position communication</description>
+  <maintainer email="denzel.ezekiel@gmail.com">Denzel Widjaja</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+
+  <exec_depend>pyserial</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

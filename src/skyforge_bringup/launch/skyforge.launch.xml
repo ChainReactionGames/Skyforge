@@ -9,6 +9,9 @@
   <!-- Skyforge Controller simulation Uncomment to add-->
   <include file="$(find-pkg-share skyforge_controllers)/launch/controllers.launch.py" /> 
 
+  <!-- Bridge ligma balls Uncomment to add-->
+  <!-- <include file="$(find-pkg-share serial_bridge)/launch/serial_bridge.launch.py" /> -->
+
   <!-- calculations for Control system math -->
   <include file="$(find-pkg-share joint_state_plotter)/launch/joint_plotter.launch.py" />
 
