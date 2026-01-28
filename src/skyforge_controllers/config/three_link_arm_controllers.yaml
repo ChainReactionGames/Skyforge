@@ -23,22 +23,22 @@ base_velocity_controller:
       - world_to_base
     interface_name: velocity
 
-lqr_arm_controller:
-  ros__parameters:
-    type: lqr_arm_controller/LQRArmController
-    joints:
-      - joint1
-      - joint2
-      - joint3
-    command_interfaces:
-      - effort
-    state_interfaces:
-      - position
-      - velocity
-    # LQR Gain Matrix (will be multiplied by -10 in the controller code)
-    K: [4.48623,  2.14097,   0.64492,    26.6525,  17.3652,   8.32901,
-        0.954329, 0.76644,   0.23026,     5.74737,  4.19641,  2.51182,
-        -1.67446, -0.786471, -0.0573681, -10.0551,  -5.95291, -2.07988]
+# lqr_arm_controller:
+#   ros__parameters:
+#     type: lqr_arm_controller/LQRArmController
+#     joints:
+#       - joint1
+#       - joint2
+#       - joint3
+#     command_interfaces:
+#       - effort
+#     state_interfaces:
+#       - position
+#       - velocity
+#     # LQR Gain Matrix (will be multiplied by -10 in the controller code)
+#     K: [4.48623,  2.14097,   0.64492,    26.6525,  17.3652,   8.32901,
+#         0.954329, 0.76644,   0.23026,     5.74737,  4.19641,  2.51182,
+#         -1.67446, -0.786471, -0.0573681, -10.0551,  -5.95291, -2.07988]
     
     # [0.660458,  0.274236,   0.00956766,  3.44008,   1.95664,   0.251072,
     #    -0.152342, -0.0602229, -0.00200757, -0.798016, -0.358789, -0.00825506,

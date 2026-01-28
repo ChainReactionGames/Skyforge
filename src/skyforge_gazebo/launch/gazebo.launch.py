@@ -82,15 +82,15 @@ def generate_launch_description():
         executable='spawner',
         arguments=['joint_state_broadcaster'],
     )
-    joint_trajectory_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=[
-            'joint_trajectory_controller',
-            '--param-file',
-            controllers_file,
-            ],
-    )
+    # joint_trajectory_controller_spawner = Node(
+    #     package='controller_manager',
+    #     executable='spawner',
+    #     arguments=[
+    #         'joint_trajectory_controller',
+    #         '--param-file',
+    #         controllers_file,
+    #         ],
+    # )
     base_trajectory_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -119,15 +119,15 @@ def generate_launch_description():
             ],
     )
 
-    lqr_arm_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=[
-            'lqr_arm_controller',
-            '--param-file',
-            controllers_file,
-            ],
-    )
+    # lqr_arm_controller_spawner = Node(
+    #     package='controller_manager',
+    #     executable='spawner',
+    #     arguments=[
+    #         'lqr_arm_controller',
+    #         '--param-file',
+    #         controllers_file,
+    #         ],
+    # )
     return LaunchDescription([
         gz_sim,
         robot_state_publisher,
@@ -137,5 +137,5 @@ def generate_launch_description():
         # joint_trajectory_controller_spawner,
         external_torque_controller_spawner,
         base_velocity_controller_spawner,
-        lqr_arm_controller_spawner
+        # lqr_arm_controller_spawner
     ])

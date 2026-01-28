@@ -35,7 +35,7 @@ class SerialBridge(Node):
         self.sub = self.create_subscription(JointState, '/joint_states', self.joint_callback, 10)
         self.pub = self.create_publisher(Float64MultiArray, '/tau_cmd', 10)
 
-        self.latest_q = [0.0,0.0,0.0]
+        self.latest_q = [1.984107747, -1.318508983, 0.905197563] # Whatever the home state is should be the default so the controller doesn't freak out if no data is being sent yet
         self.latest_dq = [0.0,0.0,0.0]
 
     def joint_callback(self, msg: JointState):
@@ -47,6 +47,8 @@ class SerialBridge(Node):
         # Send joint states to ESP32
         line = f"{self.latest_q[0]},{self.latest_q[1]},{self.latest_q[2]},"
         line += f"{self.latest_dq[0]},{self.latest_dq[1]},{self.latest_dq[2]}\n"
+        self.get_logger().info(f'Sending joint states: {line}')
+
         self.ser.write(line.encode())
 
         # Read ESP32 response (torques)
@@ -56,10 +58,11 @@ class SerialBridge(Node):
                 self.get_logger().info(f'Received: {raw}')
                 # Convert CSV to floats
                 try:
-                    tau_vals = [float(x) for x in raw.split(',')]
-                    msg = Float64MultiArray(data=tau_vals)
-                    self.pub.publish(msg)
-                    self.get_logger().info(f'Torques: {tau_vals}')
+                    if raw[0].isdigit() or raw[0] == '-':
+                        tau_vals = [float(x) for x in raw.split(',')]
+                        msg = Float64MultiArray(data=tau_vals)
+                        self.pub.publish(msg)
+                        self.get_logger().info(f'Torques: {tau_vals}')
                 except Exception as e:
                     self.get_logger().warn(f'Failed to parse: {raw} -> {e}')
 

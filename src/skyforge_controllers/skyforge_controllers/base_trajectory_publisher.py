@@ -52,7 +52,7 @@ class TrajectoryPublisher(Node):
         self.get_logger().info("Clock started, starting trajectory publisher")
 
         # Wait for controller to be active
-        self.wait_for_controller_active('lqr_arm_controller')
+        # self.wait_for_controller_active('lqr_arm_controller')
         self.wait_for_controller_active('base_trajectory_controller')
 
         self.t0 = self.get_clock().now().nanoseconds / 1e9

@@ -20,18 +20,18 @@ def generate_launch_description():
         arguments=['joint_state_broadcaster'],
     )
 
-    base_trajectory_controller = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['base_trajectory_controller'],
-    )
+    # base_trajectory_controller = Node(
+    #     package='controller_manager',
+    #     executable='spawner',
+    #     arguments=['base_trajectory_controller'],
+    # )
 
 
-    trajectory_publisher = Node(
-        package='skyforge_controllers',
-        executable='three_link_trajectory_publisher',
-        output='screen'
-    )
+    # trajectory_publisher = Node(
+    #     package='skyforge_controllers',
+    #     executable='three_link_trajectory_publisher',
+    #     output='screen'
+    # )
 
     base_velocity_publisher = Node(
         package='skyforge_controllers',
@@ -39,29 +39,29 @@ def generate_launch_description():
         output='screen'
     )
 
-    # legacy trajectory publishers from when base_trajectory_controller was used instead of velocity controller
-    base_trajectory_publisher = Node(
-        package='skyforge_controllers',
-        executable='base_trajectory_publisher',
-        output='screen'
-    )
+    # # legacy trajectory publishers from when base_trajectory_controller was used instead of velocity controller
+    # base_trajectory_publisher = Node(
+    #     package='skyforge_controllers',
+    #     executable='base_trajectory_publisher',
+    #     output='screen'
+    # )
 
-    base_stepping_trajectory_publisher = Node(
-        package='skyforge_controllers',
-        executable='base_stepping_trajectory_publisher',
-        output='screen'
-    )
+    # base_stepping_trajectory_publisher = Node(
+    #     package='skyforge_controllers',
+    #     executable='base_stepping_trajectory_publisher',
+    #     output='screen'
+    # )
 
-    base_oscillating_trajectory_publisher = Node(
-        package='skyforge_controllers',
-        executable='base_oscillating_trajectory_publisher',
-        output='screen'
-    )
+    # base_oscillating_trajectory_publisher = Node(
+    #     package='skyforge_controllers',
+    #     executable='base_oscillating_trajectory_publisher',
+    #     output='screen'
+    # )
 
 
 
     return LaunchDescription([
         # controller_manager,
-        # joint_state_broadcaster,
+        joint_state_broadcaster,
         base_velocity_publisher
     ])

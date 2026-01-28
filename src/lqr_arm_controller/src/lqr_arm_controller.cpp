@@ -1,7 +1,7 @@
 #include "lqr_arm_controller/lqr_arm_controller.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
-#include "std_msgs/msg/float64_multi_array.hpp"   // 🔴 ADDED: debug message
+#include "std_msgs/msg/float64_multi_array.hpp"  
 #include <pluginlib/class_list_macros.hpp>
 
 namespace lqr_arm_controller
