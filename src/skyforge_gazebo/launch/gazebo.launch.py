@@ -119,15 +119,27 @@ def generate_launch_description():
             ],
     )
 
-    # lqr_arm_controller_spawner = Node(
-    #     package='controller_manager',
-    #     executable='spawner',
-    #     arguments=[
-    #         'lqr_arm_controller',
-    #         '--param-file',
-    #         controllers_file,
-    #         ],
-    # )
+    # Pick either lqr_arm_controller for normal simulation or external_torque_controller for HIL control
+    # Pick by choosing which is uncommented in the returned LaunchDescription array
+    lqr_arm_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'lqr_arm_controller',
+            '--param-file',
+            controllers_file,
+            ],
+    )
+    external_torque_controller = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'external_torque_controller',
+            '--param-file',
+            controllers_file,
+            ],
+    )
+
     return LaunchDescription([
         gz_sim,
         robot_state_publisher,

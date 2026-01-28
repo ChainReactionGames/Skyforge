@@ -1,7 +1,7 @@
 #include "lqr_arm_controller/lqr_arm_controller.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
-#include "std_msgs/msg/float64_multi_array.hpp"  
+#include "std_msgs/msg/float64_multi_array.hpp"   
 #include <pluginlib/class_list_macros.hpp>
 
 namespace lqr_arm_controller
@@ -10,7 +10,6 @@ namespace lqr_arm_controller
 controller_interface::CallbackReturn
 LQRArmController::on_init()
 {
-  // UNCHANGED
   auto_declare<std::vector<double>>("K", std::vector<double>(18, 0.0));
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -19,7 +18,6 @@ LQRArmController::on_init()
 controller_interface::InterfaceConfiguration
 LQRArmController::command_interface_configuration() const
 {
-  // UNCHANGED
   return {
     controller_interface::interface_configuration_type::INDIVIDUAL,
     {"joint1/effort", "joint2/effort", "joint3/effort"}
@@ -29,7 +27,6 @@ LQRArmController::command_interface_configuration() const
 controller_interface::InterfaceConfiguration
 LQRArmController::state_interface_configuration() const
 {
-  // UNCHANGED
   return {
     controller_interface::interface_configuration_type::INDIVIDUAL,
     {
@@ -44,7 +41,7 @@ LQRArmController::state_interface_configuration() const
 controller_interface::CallbackReturn
 LQRArmController::on_activate(const rclcpp_lifecycle::State &)
 {
-  // UNCHANGED safety checks
+  // safety checks
   if (command_interfaces_.size() != 3 || state_interfaces_.size() != 9)
   {
     RCLCPP_ERROR(get_node()->get_logger(),
@@ -53,7 +50,7 @@ LQRArmController::on_activate(const rclcpp_lifecycle::State &)
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // ADDED: always-on debug publisher (NO lazy publishing)
+  // NEW: always-on debug publisher (NO lazy publishing)
   torque_pub_ =
     get_node()->create_publisher<std_msgs::msg::Float64MultiArray>(
       "~/commands", rclcpp::SystemDefaultsQoS());
@@ -67,7 +64,6 @@ LQRArmController::on_activate(const rclcpp_lifecycle::State &)
 controller_interface::CallbackReturn
 LQRArmController::on_configure(const rclcpp_lifecycle::State &)
 {
-  // UNCHANGED
   auto K_vec = get_node()->get_parameter("K").as_double_array();
 
   if (K_vec.size() != 18)
@@ -77,7 +73,7 @@ LQRArmController::on_configure(const rclcpp_lifecycle::State &)
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  // UNCHANGED mapping
+  // K mapping
   for (size_t i = 0; i < 3; ++i)
     for (size_t j = 0; j < 6; ++j)
       K_(i, j) = K_vec[i * 6 + j];
@@ -94,7 +90,7 @@ LQRArmController::update(
   const rclcpp::Time &,
   const rclcpp::Duration &)
 {
-  // UNCHANGED state reader
+  // state reader
   auto read_state = [&](size_t idx) -> double {
     auto val = state_interfaces_[idx].get_optional();
     if (!val) throw std::runtime_error("State interface unavailable");
