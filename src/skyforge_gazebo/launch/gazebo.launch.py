@@ -109,6 +109,15 @@ def generate_launch_description():
             controllers_file,
             ],
     )
+    external_torque_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=[
+            'external_torque_controller',
+            '--param-file',
+            controllers_file,
+            ],
+    )
 
     # Pick either lqr_arm_controller for normal simulation or external_torque_controller for HIL control
     # Pick by choosing which is uncommented in the returned LaunchDescription array
@@ -138,6 +147,7 @@ def generate_launch_description():
         ros2_control_node,
         joint_state_broadcaster_spawner,
         # joint_trajectory_controller_spawner,
+        external_torque_controller_spawner,
         base_velocity_controller_spawner,
         lqr_arm_controller_spawner,
         # external_torque_controller
